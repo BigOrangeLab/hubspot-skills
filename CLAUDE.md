@@ -54,6 +54,11 @@ Push deep reference material into a `references/` subdirectory; keep `SKILL.md` 
 | [hubspot-cms-membership](skills/hubspot-cms-membership/) | Build member-only content areas — access groups, login templates, CRM personalization (Content Hub Enterprise) |
 | [hubspot-cli](skills/hubspot-cli/) | Full hs CLI reference — install, auth, account management, CMS upload/watch/fetch, project build/deploy/dev, HubDB, secrets, sandboxes, serverless functions, and hs mcp setup |
 | [hubspot-mcp-server](skills/hubspot-mcp-server/) | Configure and use HubSpot's two MCP servers: Developer MCP (local, CLI-based) and Remote CRM MCP (mcp.hubspot.com) — tools, auth, IDE config for Claude Code, Cursor, VS Code, Windsurf |
+| [hubspot-private-apps](skills/hubspot-private-apps/) | Create and use HubSpot Private Apps — non-expiring scoped access tokens, scope selection, token rotation, rate limits, and split-traffic pattern for multiplying throughput |
+| [hubspot-crm-objects](skills/hubspot-crm-objects/) | CRUD for any CRM object — contacts, companies, deals, tickets, and custom objects — plus batch ops, Search API, pagination, upsert, merge, and 429 handling |
+| [hubspot-ui-extensions](skills/hubspot-ui-extensions/) | Build React-based CRM cards and full-page extensions — project structure, card hsmeta config, hubspot.extend(), SDK hooks, component library, serverless functions, and hs project workflow |
+| [hubspot-webhooks](skills/hubspot-webhooks/) | Subscribe to and process HubSpot webhooks — configure subscriptions, verify HMAC signatures, handle retries, deduplicate events, and fill coverage gaps with periodic polling |
+| [hubspot-workflows-api](skills/hubspot-workflows-api/) | Manage automation workflows via the Flows v4 API — read/create/enroll, build custom coded actions in Developer Platform projects, Breeze AI Agent Tools, and Custom Behavioral Events |
 
 ## Contributing
 

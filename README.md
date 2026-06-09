@@ -50,6 +50,11 @@ Then add entries to `~/.claude/settings.json` as above.
 | [hubspot-cms-membership](skills/hubspot-cms-membership/) | Member-only content — access groups, login templates, CRM personalization (Content Hub Enterprise) | CLI v7.10 |
 | [hubspot-cli](skills/hubspot-cli/) | Full hs CLI reference — install, auth, account management, upload/fetch/watch, project build/deploy, HubDB, secrets, sandboxes, and hs mcp setup | CLI v8.x |
 | [hubspot-mcp-server](skills/hubspot-mcp-server/) | Configure and use HubSpot's Developer MCP (local, CLI-based) and Remote CRM MCP (mcp.hubspot.com) — tools, auth, and client config for Claude Code, Cursor, VS Code, Windsurf | CLI v8.2.0, GA June 2025 |
+| [hubspot-private-apps](skills/hubspot-private-apps/) | Create and use HubSpot Private Apps — non-expiring scoped access tokens, scope selection, token rotation, rate limits, and split-traffic pattern | HubSpot API v3 |
+| [hubspot-crm-objects](skills/hubspot-crm-objects/) | CRUD for any CRM object type — batch ops, Search API, cursor pagination, upsert, merge, and 429 handling | HubSpot API crm/v3 |
+| [hubspot-ui-extensions](skills/hubspot-ui-extensions/) | React-based CRM cards and full-page extensions — hsmeta config, SDK hooks, component library, serverless functions, dev/deploy workflow | Developer Platform v2025.2 |
+| [hubspot-webhooks](skills/hubspot-webhooks/) | Configure webhook subscriptions, verify HMAC signatures, deduplicate events, handle retries, hybrid polling pattern | HubSpot webhooks/v3 |
+| [hubspot-workflows-api](skills/hubspot-workflows-api/) | Flows v4 API — CRUD, enrollment, custom coded actions, Breeze AI Agent Tools, Custom Behavioral Events | automation/v4, Developer Platform v2025.2 |
 
 ## Skill format
 
