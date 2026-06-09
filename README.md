@@ -39,6 +39,7 @@ Then add entries to `~/.claude/settings.json` as above.
 | [hubspot-contact-sync](skills/hubspot-contact-sync/) | Sync contacts between HubSpot and an external system via the Contacts API | HubSpot API v3 |
 | [hubl](skills/hubl/) | Build HubSpot CMS templates and emails using HubL — template inheritance, modules, HubDB, CRM objects, filters, and email tokens | HubSpot CMS 2026 |
 | [jinjava](skills/jinjava/) | Render Jinja-style templates in Java using HubSpot's Jinjava library — setup, config, custom tags/filters/functions, and error handling | Jinjava 2.x |
+| [hubspot-public-api](skills/hubspot-public-api/) | Reference for HubSpot's public REST APIs — auth, CRM object pattern, search, batch ops, pagination, rate limits, and full endpoint catalog | HubSpot API v3 / 2025-09 |
 
 ## Skill format
 
