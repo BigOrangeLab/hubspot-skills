@@ -8,9 +8,7 @@ metadata:
     version: "1.1"
     written: "2026-06-09"
     written_against:
-        hubspot-cms: "2026"
-        hubl: "Jinja2/Jinjava-based"
-        vscode-extension: "hubspot-cms-vscode (auto_gen snippets as source of truth)"
+        hubspot-cms-vscode: "1.7.4"
 ---
 
 # HubL Templating Language
