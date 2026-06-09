@@ -363,7 +363,17 @@ Reference from any template:
 
 Editing a global module's content in any page editor updates all pages simultaneously.
 
-### 10. Upload
+### 10. Inline editing
+
+`text` and `richtext` fields automatically enable **click-to-edit** directly on the page canvas — no extra configuration required. When the module is placed inside a `dnd_area`, editors can click the text or rich text output on the live page preview and type in place without opening the sidebar.
+
+Rules and limitations:
+- Inline editing is only active for modules placed in a `dnd_area`. Fixed (non-dnd) modules in templates do not support it.
+- `text` fields inline-edit as a plain-text input. `richtext` fields open an inline WYSIWYG toolbar.
+- Other field types (images, links, choices, etc.) are always edited via the sidebar panel, never inline.
+- Adding `"inline_help_text"` to a field definition shows a tooltip in the sidebar but does not affect inline editing.
+
+### 11. Upload
 
 ```bash
 hs upload ./card.module themes/my-theme/modules/card.module

@@ -391,6 +391,93 @@ jobs:
 
 Note: for theme-only projects (no `app.json`), use the `hubspot-cms-deploy-action` with `src_dir`/`dest_dir` instead (see `hubspot-cms-local-dev`).
 
+### 11. `cms-assets` pattern — adding React modules to an existing HubL theme
+
+The full React CMS project pattern (`hsproject.json` + `src/`) replaces a HubL theme entirely. When you want to add React modules to an **existing HubL theme** without a full conversion, use the `cms-assets` project pattern instead.
+
+**Structure:**
+
+```
+my-project/
+├── hsproject.json
+└── src/
+    └── cms-assets/                  # React modules living alongside the HubL theme
+        ├── cms-assets.json          # replaces theme.json for this pattern
+        ├── package.json
+        └── components/
+            └── modules/
+                └── InteractiveMap/
+                    └── index.tsx
+```
+
+`cms-assets.json` (instead of `theme.json`):
+
+```json
+{
+  "label": "CMS Assets",
+  "type": "cms-assets"
+}
+```
+
+The HubL theme files remain in their existing Design Manager location. React modules in `src/cms-assets/` are deployed by `hs project upload` and referenced from HubL templates using a project path:
+
+```html
+{% module "interactive_map"
+  path="@projects/my-project/cms-assets/components/modules/InteractiveMap"
+%}
+```
+
+Use this pattern when:
+- An existing HubL theme is already live and you do not want to migrate it
+- You want to introduce one or two React modules without a full project rewrite
+- The team works primarily in HubL but needs a specific interactive component
+
+### 12. GraphQL data fetching
+
+React CMS modules can query HubSpot CRM and CMS data at render time using GraphQL via HubSpot's Collector API. This is the server-side data fetching pattern for React modules (no serverless function required).
+
+**Enable in `app.json`:**
+
+```json
+{
+  "scopes": [
+    "collector.graphql_schema.read",
+    "collector.graphql_query.execute"
+  ]
+}
+```
+
+**Fetch data in a module component:**
+
+```tsx
+// components/modules/ContactList/index.tsx
+import { useServerlessFunctionResult } from '@hubspot/cms-components';
+
+export function Component({ fieldValues }: any) {
+  const { data } = useServerlessFunctionResult(
+    '/hs/serverless/contacts',
+    { method: 'GET' }
+  );
+
+  if (!data) return <p>Loading…</p>;
+
+  return (
+    <ul>
+      {data.contacts.map((c: any) => (
+        <li key={c.id}>{c.properties.firstname} {c.properties.lastname}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+For full GraphQL query examples and schema exploration, see the [graphql-storybook example](https://github.com/HubSpot/cms-react/tree/main/examples/graphql-storybook) in the `HubSpot/cms-react` repo. The example demonstrates:
+- Querying CRM objects (contacts, companies, custom objects) by GraphQL
+- The `/collector/graphql` endpoint
+- Storybook-based component development with mocked GraphQL responses
+
+The GraphQL endpoint is at `/_hcms/api/graphql` (available once the required scopes are added to `app.json` and the project is deployed).
+
 ## Verification
 
 - `npm start` opens `https://hslocal.net:3000/` and lists theme templates

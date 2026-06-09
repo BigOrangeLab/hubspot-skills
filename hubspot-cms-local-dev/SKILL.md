@@ -197,6 +197,47 @@ hubspot.config.yml
 
 Without this, `hs watch` will try to upload `node_modules/` which will hang or fail.
 
+### 11. VS Code extension
+
+Install the [HubSpot VS Code extension](https://marketplace.visualstudio.com/items?itemName=HubSpot.hubl-language-extension) for HubL syntax highlighting, snippet completions, and IntelliSense:
+
+```bash
+code --install-extension HubSpot.hubl-language-extension
+```
+
+Or search **HubSpot** in the Extensions panel (`⌘⇧X` / `Ctrl⇧X`).
+
+**File associations** — add to `.vscode/settings.json` in the theme repo so VS Code uses the HubL language modes:
+
+```json
+{
+  "files.associations": {
+    "*.html": "html-hubl",
+    "*.css":  "css-hubl"
+  },
+  "editor.suggest.snippetsPreventQuickSuggestions": false,
+  "editor.parameterHints.enabled": true
+}
+```
+
+`html-hubl` adds `{% %}` / `{{ }}` token colouring, tag snippets (`dnd_area`, `require_css`, `module`, etc.), and auto-complete for HubL filters. `css-hubl` handles `{{ }}` interpolation inside CSS files.
+
+If the repo contains non-HubL HTML (e.g. a workspace with plain HTML files), scope the association to the theme subdirectory only using a nested `.vscode/settings.json`.
+
+### 12. Design Manager vs. CLI — asset visibility
+
+| Asset type | Design Manager file browser | `hs watch` / `hs upload` | `hs project dev` / `hs project upload` |
+|---|---|---|---|
+| HubL theme files (`.html`, `.css`, `.js`, `*.module/`) | ✅ Visible and editable | ✅ Two-way sync | — |
+| Global partials | ✅ Editable inline | ✅ Syncs on save | — |
+| Serverless functions (standalone `*.functions/`) | ✅ Under "Serverless Functions" | ✅ Uploads with theme | — |
+| React CMS project source (`.tsx`, `.jsx`) | ❌ Not visible | — | ✅ Build + deploy only |
+| React compiled bundles | ❌ Not visible | — | ✅ Deployed as opaque assets |
+| Serverless functions (project-based) | ❌ Not visible | — | ✅ Deploy with project |
+| HubDB tables | ✅ Under Marketing → Files → HubDB | CLI preview only | — |
+
+**Key rule:** React CMS project assets live entirely outside the Design Manager. Use the CLI and project workflow exclusively for those assets.
+
 ## Verification
 
 ```bash

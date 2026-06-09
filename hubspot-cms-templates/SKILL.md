@@ -447,6 +447,99 @@ Load assets conditionally — only injected on pages where the call executes:
 
 `get_asset_url()` resolves relative to the theme root and appends a cache-busting hash. Place calls anywhere in the template — HubSpot deduplicates and injects them in the right order.
 
+### 11. Email templates
+
+Email templates use `templateType: email` and differ from page templates in two important ways:
+
+**1. Required email variables — different from page templates:**
+
+```html
+<!--
+  templateType: email
+  isAvailableForNewContent: true
+  label: Marketing email
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="{{ content.language }}">
+  <head>
+    <meta charset="utf-8">
+    {{ email_header }}
+  </head>
+  <body>
+    <!-- email body content -->
+    {{ email_footer }}
+  </body>
+</html>
+```
+
+| Variable | Use | Notes |
+|---|---|---|
+| `{{ email_header }}` | In `<head>` | Required — injects HubSpot tracking pixels, unsubscribe meta, preview text |
+| `{{ email_footer }}` | Before `</body>` | Required — renders the CAN-SPAM unsubscribe footer block |
+| `{{ content.language }}` | `<html lang="">` | Email's configured send language |
+
+Do **not** use `standard_header_includes` or `standard_footer_includes` in email templates — those are for page templates only.
+
+**2. Table-based layout for email client compatibility:**
+
+Email clients (Outlook, Gmail, Apple Mail) have inconsistent support for CSS Flexbox, Grid, and modern layout. Use tables for reliable multi-column layout:
+
+```html
+<table width="600" cellpadding="0" cellspacing="0" border="0" align="center">
+  <tr>
+    <td width="300" valign="top">Left column content</td>
+    <td width="300" valign="top">Right column content</td>
+  </tr>
+</table>
+```
+
+Keep all CSS inline (`style="..."`) for maximum client compatibility. Use `max-width: 600px` as the standard desktop width.
+
+**3. Coded vs. drag-and-drop email templates:**
+
+| | Coded email template | Drag-and-drop email template |
+|---|---|---|
+| Authoring | HubL file with `templateType: email` | Built in the drag-and-drop email editor (no HubL file) |
+| Flexibility | Full control over HTML/CSS | Constrained to editor's row/column/module model |
+| Modules | `{% module %}` tags, email-specific modules | Editor-managed modules |
+| Use when | Pixel-perfect branded transactional email | Marketing email that editors build and iterate |
+
+Default HubSpot email modules available in coded templates: `@hubspot/rich_text`, `@hubspot/linked_image`, `@hubspot/cta`, `@hubspot/divider`, `@hubspot/spacer`.
+
+### 12. Multi-language support
+
+HubSpot CMS supports multi-language variants of pages and blogs. Templates need to handle language switching and locale-aware content.
+
+**`html_lang` and `content.language`:**
+
+```html
+<html lang="{{ html_lang }}" {{ html_lang_dir }}>
+```
+
+- `html_lang` — the language code for the current page variant (e.g. `en`, `fr`, `de`)
+- `html_lang_dir` — text direction attribute (`dir="ltr"` or `dir="rtl"`)
+- `content.language` — full locale string used for email templates
+
+**Language switcher module:**
+
+Add `@hubspot/language_switcher` to the header partial to render links to other language variants of the current page:
+
+```html
+{% module "language_switcher" path="@hubspot/language_switcher" %}
+```
+
+The module renders a `<select>` or list of links automatically — no additional configuration required. It only appears when the page has multi-language variants published.
+
+**Cache-busting with `get_asset_version()`:**
+
+The boilerplate header partial uses `get_asset_version()` to append a version hash to asset URLs, ensuring browsers pick up new CSS/JS after deploys:
+
+```html
+{{ require_css(get_asset_url("../../css/main.css")) }}
+```
+
+`get_asset_url()` already handles cache-busting — calling `get_asset_version()` separately is only needed for custom asset URL patterns outside `require_css`/`require_js`.
+
 ## Verification
 
 - Template appears in the template picker when creating a new page (when `isAvailableForNewContent: true`)
