@@ -40,6 +40,14 @@ Then add entries to `~/.claude/settings.json` as above.
 | [hubl](skills/hubl/) | Build HubSpot CMS templates and emails using HubL — template inheritance, modules, HubDB, CRM objects, filters, and email tokens | HubSpot CMS 2026 |
 | [jinjava](skills/jinjava/) | Render Jinja-style templates in Java using HubSpot's Jinjava library — setup, config, custom tags/filters/functions, and error handling | Jinjava 2.x |
 | [hubspot-public-api](skills/hubspot-public-api/) | Reference for HubSpot's public REST APIs — auth, CRM object pattern, search, batch ops, pagination, rate limits, and full endpoint catalog | HubSpot API v3 / 2025-09 |
+| [hubspot-cms-local-dev](skills/hubspot-cms-local-dev/) | Set up the HubSpot local dev environment — CLI install, auth, file sync, and preview workflow | CLI v7.10 |
+| [hubspot-cms-themes](skills/hubspot-cms-themes/) | Build HubSpot CMS themes — file structure, theme settings, drag-and-drop areas, child themes | CLI v7.10 |
+| [hubspot-cms-modules](skills/hubspot-cms-modules/) | Create custom CMS modules — all field types, repeaters, global modules, editor experience | CLI v7.10 |
+| [hubspot-cms-templates](skills/hubspot-cms-templates/) | Author page, blog, email, and system templates in HubL — inheritance, global content, multi-language | CLI v7.10 |
+| [hubspot-hubdb](skills/hubspot-hubdb/) | Work with HubDB — table creation, HubL queries, dynamic pages, CLI and REST API | HubSpot API v3, CLI v7.10 |
+| [hubspot-cms-serverless](skills/hubspot-cms-serverless/) | CMS serverless endpoint functions — secrets, logging, third-party APIs (Content Hub Enterprise) | CLI v7.10, Node.js v20 |
+| [hubspot-cms-react](skills/hubspot-cms-react/) | CMS React projects — React templates/modules, project structure, local dev, CI/CD deploy | CLI v7.10, Node.js v20 |
+| [hubspot-cms-membership](skills/hubspot-cms-membership/) | Member-only content — access groups, login templates, CRM personalization (Content Hub Enterprise) | CLI v7.10 |
 
 ## Skill format
 
