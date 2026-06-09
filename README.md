@@ -55,6 +55,8 @@ Then add entries to `~/.claude/settings.json` as above.
 | [hubspot-ui-extensions](skills/hubspot-ui-extensions/) | React-based CRM cards and full-page extensions — hsmeta config, SDK hooks, component library, serverless functions, dev/deploy workflow | Developer Platform v2025.2 |
 | [hubspot-webhooks](skills/hubspot-webhooks/) | Configure webhook subscriptions, verify HMAC signatures, deduplicate events, handle retries, hybrid polling pattern | HubSpot webhooks/v3 |
 | [hubspot-workflows-api](skills/hubspot-workflows-api/) | Flows v4 API — CRUD, enrollment, custom coded actions, Breeze AI Agent Tools, Custom Behavioral Events | automation/v4, Developer Platform v2025.2 |
+| [hubspot-data-sync](skills/hubspot-data-sync/) | Sync data bidirectionally between HubSpot and external systems — field mapping, conflict resolution, deletion handling, and incremental sync patterns | HubSpot API v3/v4 |
+| [hubspot-imports-exports](skills/hubspot-imports-exports/) | Bulk import and export CRM data — Imports API file upload, column mapping, async job polling, error handling, and post-import reconciliation | HubSpot API v3 |
 
 ## Skill format
 

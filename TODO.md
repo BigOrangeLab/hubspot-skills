@@ -65,26 +65,6 @@ Create and publish landing pages via API.
 
 ---
 
-## Operations / Integrations
-
-### `hubspot-data-sync`
-Sync data between HubSpot and external systems reliably.
-- Operations Hub Data Sync feature overview
-- Custom sync mapping with the Data Sync API
-- Conflict resolution strategies
-- Field mapping and transformation
-- Handling deletions and archiving
-
-### `hubspot-imports-exports`
-Bulk import and export CRM data.
-- Imports API: file upload, column mapping, error handling
-- Async import job polling
-- Exports API: generate and download exports
-- Dedupe strategies on import
-- Note: bulk imports do not trigger webhooks — reconciliation needed
-
----
-
 ## Tooling
 
 ---
