@@ -52,6 +52,8 @@ Push deep reference material into a `references/` subdirectory; keep `SKILL.md` 
 | [hubspot-cms-serverless](skills/hubspot-cms-serverless/) | Write and deploy CMS serverless endpoint functions — secrets, logging, third-party API calls (Content Hub Enterprise) |
 | [hubspot-cms-react](skills/hubspot-cms-react/) | Build HubSpot CMS React projects — React templates/modules, project structure, local dev, and deployment |
 | [hubspot-cms-membership](skills/hubspot-cms-membership/) | Build member-only content areas — access groups, login templates, CRM personalization (Content Hub Enterprise) |
+| [hubspot-cli](skills/hubspot-cli/) | Full hs CLI reference — install, auth, account management, CMS upload/watch/fetch, project build/deploy/dev, HubDB, secrets, sandboxes, serverless functions, and hs mcp setup |
+| [hubspot-mcp-server](skills/hubspot-mcp-server/) | Configure and use HubSpot's two MCP servers: Developer MCP (local, CLI-based) and Remote CRM MCP (mcp.hubspot.com) — tools, auth, IDE config for Claude Code, Cursor, VS Code, Windsurf |
 
 ## Contributing
 

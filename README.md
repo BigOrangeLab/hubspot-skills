@@ -48,6 +48,8 @@ Then add entries to `~/.claude/settings.json` as above.
 | [hubspot-cms-serverless](skills/hubspot-cms-serverless/) | CMS serverless endpoint functions — secrets, logging, third-party APIs (Content Hub Enterprise) | CLI v7.10, Node.js v20 |
 | [hubspot-cms-react](skills/hubspot-cms-react/) | CMS React projects — React templates/modules, project structure, local dev, CI/CD deploy | CLI v7.10, Node.js v20 |
 | [hubspot-cms-membership](skills/hubspot-cms-membership/) | Member-only content — access groups, login templates, CRM personalization (Content Hub Enterprise) | CLI v7.10 |
+| [hubspot-cli](skills/hubspot-cli/) | Full hs CLI reference — install, auth, account management, upload/fetch/watch, project build/deploy, HubDB, secrets, sandboxes, and hs mcp setup | CLI v8.x |
+| [hubspot-mcp-server](skills/hubspot-mcp-server/) | Configure and use HubSpot's Developer MCP (local, CLI-based) and Remote CRM MCP (mcp.hubspot.com) — tools, auth, and client config for Claude Code, Cursor, VS Code, Windsurf | CLI v8.2.0, GA June 2025 |
 
 ## Skill format
 
