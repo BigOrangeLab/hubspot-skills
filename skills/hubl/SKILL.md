@@ -5,16 +5,21 @@ compatibility: "HubSpot CMS Hub (all tiers). Some functions (HubDB, CRM objects)
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
+    version: "1.1"
     written: "2026-06-09"
     written_against:
         hubspot-cms: "2026"
         hubl: "Jinja2/Jinjava-based"
+        vscode-extension: "hubspot-cms-vscode (auto_gen snippets as source of truth)"
 ---
 
 # HubL Templating Language
 
 HubL is HubSpot's server-side templating language, built on [Jinjava](https://github.com/HubSpot/jinjava) (a Java implementation of Jinja2). Templates are `.html` files edited in the HubSpot Design Manager or via the Local Development CLI (`hs`).
+
+See also:
+- [references/functions.md](references/functions.md) — complete function catalog with signatures
+- [references/variables.md](references/variables.md) — all template variables by context
 
 ## When to use
 
@@ -112,27 +117,20 @@ HubL supports Django-style template inheritance. Define a **parent** layout with
 <div style="color: {{ primary_color }};">...</div>
 ```
 
-**Key global variables available in page templates:**
+**Namespace** — use `namespace()` to create a mutable object that can be updated inside loops (regular `set` variables are scoped to the block):
 
-| Variable | Description |
-|---|---|
-| `content` | The current page/post object (see below) |
-| `content.name` | Page title |
-| `content.meta_description` | Meta description |
-| `content.absolute_url` | Full public URL |
-| `content.publish_date` | Publish timestamp |
-| `content.tag_list` | List of tags (blog posts) |
-| `content.featured_image` | Featured image URL |
-| `content.widgets` | Dict of all modules on the page |
-| `group` | The blog object (on blog templates) |
-| `group.id` | Blog ID |
-| `group.absolute_url` | Blog root URL |
-| `request.query_dict` | URL query parameters as a dict |
-| `request.cookies` | Request cookies as a dict |
-| `request.path` | Current path |
-| `request.domain` | Current domain |
-| `local_dt` | Local datetime object |
-| `site_settings` | Portal site settings |
+```hubl
+{% set ns = namespace(count=0, found=false) %}
+{% for item in items %}
+  {% if item.active %}
+    {% set ns.count = ns.count + 1 %}
+    {% set ns.found = true %}
+  {% endif %}
+{% endfor %}
+{{ ns.count }} active items found: {{ ns.found }}
+```
+
+For the complete variable reference (content, request, blog, email, page_meta, site_settings, etc.) see [references/variables.md](references/variables.md).
 
 ---
 
@@ -154,6 +152,14 @@ HubL supports Django-style template inheritance. Define a **parent** layout with
 {% endif %}
 ```
 
+**Unless** — inverse of `if`:
+
+```hubl
+{% unless content.archived %}
+  <p>This post is live.</p>
+{% endunless %}
+```
+
 **For loops** — iterate over sequences; `loop` variable provides metadata:
 
 ```hubl
@@ -169,7 +175,36 @@ HubL supports Django-style template inheritance. Define a **parent** layout with
 {% endfor %}
 ```
 
-**Do tag** — execute side-effecting expressions (e.g., appending to a list) without printing:
+**Break and continue inside loops:**
+
+```hubl
+{% for item in items %}
+  {% if item.hidden %}{% continue %}{% endif %}
+  {% if loop.index > 5 %}{% break %}{% endif %}
+  {{ item.name }}
+{% endfor %}
+```
+
+**Cycle** — print rotating values inside a loop (useful for zebra-striping):
+
+```hubl
+{% for item in items %}
+  <tr class="{% cycle 'odd', 'even' %}">
+    <td>{{ item.name }}</td>
+  </tr>
+{% endfor %}
+```
+
+**Flip** — output two blocks in normal or reversed order based on a condition:
+
+```hubl
+{% flip %}
+  <div class="primary">...</div>
+  <div class="secondary">...</div>
+{% endflip %}
+```
+
+**Do tag** — execute side-effecting expressions without printing:
 
 ```hubl
 {% set my_list = [] %}
@@ -178,29 +213,21 @@ HubL supports Django-style template inheritance. Define a **parent** layout with
 {{ my_list | join(", ") }}
 ```
 
----
-
-### 5. Includes and partials
-
-**Include a template fragment:**
+**Range** — generate a numeric sequence:
 
 ```hubl
-{% include "custom/page/web_page_basic/my_footer.html" %}
+{% for i in range(1, 6) %}{{ i }}{% if not loop.last %}, {% endif %}{% endfor %}
+{# → 1, 2, 3, 4, 5 #}
+
+{% for i in range(0, 10, 2) %}{{ i }} {% endfor %}
+{# → 0 2 4 6 8  (max 1000 values) #}
 ```
-
-**Include a global partial** (shared across templates):
-
-```hubl
-{% global_partial path="../partials/header.html" %}
-```
-
-Global partials are managed separately in the Design Manager and can be shared across multiple templates. Changes to a global partial propagate everywhere it is included.
 
 ---
 
-### 6. Macros
+### 5. Template inheritance extras: macros, import, call
 
-Macros are reusable template functions that output HTML:
+**Define and call a macro:**
 
 ```hubl
 {% macro render_card(title, body, cta_text="Learn more") %}
@@ -211,34 +238,99 @@ Macros are reusable template functions that output HTML:
   </div>
 {% endmacro %}
 
-{# Call it: #}
 {{ render_card("Welcome", "Here is some intro text.") }}
 {{ render_card("Offer", "Special deal.", cta_text="Claim now") }}
 ```
 
-Strip whitespace inside macros with `-`:
+**Import macros from another template:**
 
 ```hubl
-{% macro compact_tag(value) -%}
-  <span>{{ value }}</span>
-{%- endmacro %}
+{% import "custom/macros/cards.html" as cards %}
+{{ cards.render_card("My Title", "My body.") }}
+
+{# Or import specific macros only: #}
+{% from "custom/macros/cards.html" import render_card, render_hero %}
+{{ render_card("Title", "Body") }}
+```
+
+**Call block** — pass a block of content into a macro:
+
+```hubl
+{% macro render_section(title) %}
+  <section>
+    <h2>{{ title }}</h2>
+    {{ caller() }}
+  </section>
+{% endmacro %}
+
+{% call render_section("Features") %}
+  <ul><li>Fast</li><li>Reliable</li></ul>
+{% endcall %}
 ```
 
 ---
 
-### 7. Modules and `export_to_template_context`
-
-HubL modules embed editable content fields. Add `export_to_template_context=True` to expose a module's field values to the template as the `widget_data` dict — useful for driving conditional logic from editor-controlled values.
+### 6. Includes and partials
 
 ```hubl
-{# Declare a text module and expose its value to template logic #}
+{# Include a template fragment #}
+{% include "custom/page/web_page_basic/my_footer.html" %}
+
+{# Include a global partial (shared, managed separately in Design Manager) #}
+{% global_partial path="../partials/header.html" %}
+
+{# Include a drag-and-drop partial #}
+{% include_dnd_partial "custom/partials/my_dnd_partial.html" %}
+```
+
+---
+
+### 7. Asset enqueuing
+
+Use these to ensure CSS and JS are output in the correct location rather than inline:
+
+```hubl
+{# Enqueue a stylesheet URL into <head> #}
+{{ require_css("https://example.com/style.css") }}
+{{ require_css(get_asset_url("../css/main.css")) }}
+
+{# Enqueue a script — position defaults to head; use 'footer' to defer #}
+{{ require_js("https://example.com/app.js", {"position": "footer", "defer": true}) }}
+
+{# Enqueue an inline stylesheet block #}
+{% require_css %}
+  <style>.hero { background: {{ primary_color }}; }</style>
+{% end_require_css %}
+
+{# Enqueue an inline script block #}
+{% require_js position="footer" %}
+  <script>console.log('loaded');</script>
+{% end_require_js %}
+
+{# Output all enqueued assets (use in base template) #}
+{{ head_css() }}      {# all CSS in <head> #}
+{{ head_js() }}       {# all JS in <head> #}
+{{ footer_js() }}     {# all JS in footer #}
+{{ head_elements() }} {# all other <head> elements #}
+
+{# Include a design file directly (generates <link> or <script> tag) #}
+{{ include_css("custom/css/theme.css") }}
+{{ include_javascript("custom/js/app.js") }}
+```
+
+---
+
+### 8. Modules and `export_to_template_context`
+
+HubL modules embed editable content fields. Add `export_to_template_context=True` to expose a module's field values to the template as the `widget_data` dict:
+
+```hubl
 {% module "job_title"
    path="@hubspot/text"
    label="Job Title"
    value="Chief Morale Officer"
    export_to_template_context=True %}
 
-{# Use in logic without re-printing the module: #}
 {% if widget_data.job_title.body.value == "CEO" %}
   <div class="executive-banner">...</div>
 {% endif %}
@@ -261,167 +353,277 @@ HubL modules embed editable content fields. Add `export_to_template_context=True
 <div style="background-image: url('{{ widget_data.bg_image.src }}')">...</div>
 ```
 
+**Access a static module's value without `export_to_template_context`:**
+
+```hubl
+{{ content.widgets.my_text.body.value }}
+{{ content.widgets.my_image.body.src }}
+```
+
 **Limitations:**
 - `export_to_template_context` does NOT work with drag-and-drop (DnD) modules — DnD modules get arbitrary IDs at runtime.
-- For static modules, access widget data directly via `{{ content.widgets.module_name.body.parameter }}`.
+- Does not support retrieving values from fields in global modules.
 
 ---
 
-### 8. HubDB queries
+### 9. HubDB queries
 
 HubDB is HubSpot's structured-data table system. Requires Content Hub Professional or Enterprise.
 
 ```hubl
-{# Get all rows from a table #}
-{% for row in hubdb_table_rows("my_table_name") %}
+{# All rows #}
+{% for row in hubdb_table_rows("my_table") %}
   {{ row.hs_id }} — {{ row.title }} — {{ row.price }}
 {% endfor %}
 
-{# Filter rows (query string syntax) #}
-{% for row in hubdb_table_rows(1234567, "price__gt=100&orderBy=title") %}
+{# Filter with HQL query string #}
+{% for row in hubdb_table_rows("my_table", "price__gt=100&orderBy=title&limit=20") %}
   ...
 {% endfor %}
 
-{# Get a single row by row ID #}
-{% set row = hubdb_table_row("my_table", 9876) %}
-{{ row.title }}
+{# Paginate with offset #}
+{% for row in hubdb_table_rows("my_table", "limit=10&offset=20") %}
+  ...
+{% endfor %}
 
-{# Get table metadata #}
-{% set meta = hubdb_table("my_table") %}
-{{ meta.name }} has {{ meta.row_count }} rows.
-
-{# Geo distance filter #}
+{# Geo distance filter (HQL) #}
 {% for row in hubdb_table_rows("locations", "geo_distance(coords,37.77,-122.41,mi)__lt=50") %}
   {{ row.name }}
 {% endfor %}
+
+{# Single row by row ID #}
+{% set row = hubdb_table_row("my_table", 9876) %}
+{{ row.title }}
+
+{# Table metadata #}
+{% set meta = hubdb_table("my_table") %}
+{{ meta.name }} has {{ meta.row_count }} rows.
 ```
+
+HQL filter operators: `eq` (default), `neq`, `lt`, `lte`, `gt`, `gte`, `is_null`, `not_null`, `in`, `not_in`.
 
 **Rate limit:** `hubdb_table_rows()` is limited to 10 calls per template render.
 
 ---
 
-### 9. CRM object queries
+### 10. CRM object queries
+
+On public pages, only `product` objects and portal-specific custom objects are accessible. All other built-in CRM object types require password-protected or Membership-gated pages.
 
 ```hubl
 {# Single object by query #}
-{% set company = crm_object("companies", "name=Acme", "name,domain,city") %}
+{% set company = crm_object("companies", "name=Acme Corp", "name,domain,city") %}
 {{ company.name }} — {{ company.city }}
 
-{# Multiple objects #}
-{% for contact in crm_objects("contacts", "email__contains=@example.com", "firstname,lastname,email", "lastname", 10) %}
-  {{ contact.firstname }} {{ contact.lastname }}
+{# Single object by ID #}
+{% set contact = crm_object("contacts", "12345", "firstname,lastname,email") %}
+
+{# Multiple objects with pagination #}
+{% for product in crm_objects("products", "price__gt=50&limit=12&offset=0", "name,price,hs_sku") %}
+  {{ product.name }} — ${{ product.price }}
 {% endfor %}
+
+{# CRM associations — get objects related to another object #}
+{% set deals = crm_associations(company.hs_object_id, "HUBSPOT_DEFINED", 5, "", "dealname,amount") %}
+{% for deal in deals %}
+  {{ deal.dealname }}: ${{ deal.amount }}
+{% endfor %}
+
+{# Get a property's definition (label, options, type) #}
+{% set prop = crm_property_definition("contacts", "lifecyclestage") %}
+{{ prop.label }}: {% for opt in prop.options %}{{ opt.label }}{% if not loop.last %}, {% endif %}{% endfor %}
 ```
 
-`crm_objects(type, filter, properties, order_by, limit)` — all args after `type` are optional.
+CRM object type names are case-sensitive except for HubSpot built-ins (`contact`/`CONTACT` are the same; custom objects are not). Use fully-qualified names (`p{portalId}_typename`) only to disambiguate collisions.
 
 ---
 
-### 10. Blog functions
+### 11. Blog functions
 
 ```hubl
-{# Recent posts #}
-{% set recent = blog_recent_posts("default", 5) %}
-{% for post in recent %}
+{# Recent posts (max 200) #}
+{% for post in blog_recent_posts("default", 5) %}
   <a href="{{ post.absolute_url }}">{{ post.name }}</a>
 {% endfor %}
 
-{# Popular posts (cached 6 hours) #}
-{% for post in blog_popular_posts("default", 3) %}
+{# Popular posts (cached 6 hours; optional tag and timeframe filters) #}
+{% for post in blog_popular_posts("default", 3, ["marketing"], "popular_past_month") %}
   {{ post.name }}
 {% endfor %}
 
-{# Posts by tag #}
-{% for post in blog_recent_tag_posts("default", "marketing", 5) %}
-  {{ post.name }}
-{% endfor %}
+{# Posts by tag — tag_slug can be a slug string or list + logical_operator #}
+{% for post in blog_recent_tag_posts("default", "design", 5) %}...{% endfor %}
+{% for post in blog_recent_tag_posts("default", ["design","ux"], 5, "OR") %}...{% endfor %}
 
-{# Author listing URL #}
-{{ blog_author_url(group.id, author.slug) }}
+{# Posts by author #}
+{% for post in blog_recent_author_posts("default", "jane-doe", 5) %}...{% endfor %}
 
-{# Tag listing URL #}
+{# Single post by ID #}
+{% set post = blog_post_by_id(12345678) %}
+
+{# Blog metadata #}
+{% set blog = blog_by_id("default") %}
+{{ blog.name }} — {{ blog.absolute_url }}
+
+{# Tag/author listing URLs #}
 {{ blog_tag_url(group.id, tag.slug) }}
-
-{# Paginated listing URL #}
+{{ blog_author_url(group.id, author.slug) }}
 {{ blog_page_link(group.id, 2) }}
+{{ blog_post_archive_url("default", 2025, 11) }}
+{{ blog_all_posts_url("default") }}
 
-{# Total post count #}
+{# All tags sorted by post count (max 250) #}
+{% for tag in blog_tags("default", 20) %}{{ tag.name }}{% endfor %}
+
+{# All authors #}
+{% for author in blog_authors("default", 10) %}{{ author.display_name }}{% endfor %}
+
 {{ blog_total_post_count("default") }}
 ```
 
 ---
 
-### 11. Content and utility functions
+### 12. Content and utility functions
 
 ```hubl
-{# Get a page/post by ID #}
+{# Page/post lookup #}
 {% set page = content_by_id(12345678) %}
-{{ page.name }} — {{ page.absolute_url }}
+{% set pages = content_by_ids([111, 222, 333]) %}
+{% set page = page_by_id(12345678) %}
 
-{# Resize an image hosted in HubSpot #}
-{{ resize_image("https://cdn2.hubspot.net/hubfs/...", 800, 600) }}
+{# File metadata from File Manager #}
+{% set f = file_by_id(99999) %}
+{{ f.url }} — {{ f.size }}
+{% set files = files_by_ids([11, 22]) %}
 
-{# Today's date (start of day timestamp) #}
+{# Images — resize a HubSpot-hosted image #}
+{{ resize_image_url("https://cdn2.hubspot.net/...", 800, 600) }}
+{{ video_thumbnail({"url": "https://cdn.hubspot.net/...", "width": 800, "color": "#FF0000"}) }}
+
+{# Color utilities #}
+{{ color_variant("#336699", -30) }}   {# darken #}
+{{ color_variant("#336699", 30) }}    {# lighten #}
+{% if color_contrast("#fff", "#333", "AA") %}Passes WCAG AA{% endif %}
+
+{# Dates #}
 {% set today = today() %}
-{{ today | date_to_format("yyyy-MM-dd") }}
+{{ today | date_to_format("MMMM d, yyyy") }}
+{{ now() }}  {# Unix timestamp #}
+{{ to_local_time(content.publish_date) | date_to_format("yyyy-MM-dd HH:mm") }}
+{% set d = strtodate("2025-12-01", "yyyy-MM-dd") %}
+{% set dt = strtotime("2025-12-01 09:00", "yyyy-MM-dd HH:mm") %}
 
-{# Current Unix timestamp #}
-{{ now() }}
+{# Geo distance (standalone, not just HQL) #}
+{{ geo_distance(row.location_col, 37.77, -122.41, "MI") }}
 
-{# Public URL of a design file #}
+{# i18n (works within modules) #}
+{% set lang = i18n_getlanguage() %}
+{{ i18n_getmessage("cta.button_text") }}
+{% set t = load_translations("../locales", request.locale, "en") %}
+{{ t.greeting }}
+{{ locale_name("fr", "en") }}  {# → "French" #}
+
+{# CTA rendering #}
+{{ cta("abc12345-guid", "justifycenter") }}
+
+{# HTTP #}
+{{ set_response_code(404) }}  {# Use on 404 pages #}
+
+{# Asset URLs #}
+{{ get_asset_url("custom/css/theme.css") }}
 {{ get_public_template_url("custom/page/web_page_basic/my-template.html") }}
+{{ get_public_template_url_by_id(12345) }}
+{{ module_asset_url("icon.svg") }}
 
-{# Render a CTA by GUID #}
-{{ cta("abc12345-...") }}
+{# Product recommendations (ecommerce) #}
+{% for product in product_recommendations("all", 6, "USD", 0, 200) %}
+  {{ product.name }} — {{ product.price }}
+{% endfor %}
 
-{# Postal-code-based geolocation #}
-{% set loc = postal_location("94105") %}
-{{ loc.city }}, {{ loc.state }}
+{# Topic cluster #}
+{% set cluster = topic_cluster_by_content_id(content.id) %}
+
+{# Japanese name/address formatting #}
+{{ format_name("Taro", "Yamada", true) }}
+{{ format_company_name("株式会社ハブスポット", true) }}
+{{ format_address("ja-JP", {"address": "1-1", "city": "Tokyo", "country": "JP", "zip": "100-0001"}) }}
+
+{# Unique string from input #}
+{{ unique_string("my-module-id") }}
 ```
 
 ---
 
-### 12. Filters reference
+### 13. Personalization (CMS pages)
 
-Filters transform values using the pipe syntax: `{{ value | filter_name(args) }}`.
-
-**String filters:**
+HubSpot supports personalizing CMS pages using contact/company data via the Personalization API. This requires a signed URL and JavaScript to hydrate values client-side (server-side rendering of contact data on cacheable pages is not supported).
 
 ```hubl
-{{ "hello world" | capitalize }}       → Hello world
-{{ "hello world" | title }}            → Hello World
-{{ "HELLO" | lower }}                  → hello
-{{ "hello" | upper }}                  → HELLO
-{{ "  hello  " | trim }}               → hello
-{{ "hello world" | truncate(5, "…") }} → hello…
-{{ "<b>hi</b>" | striptags }}          → hi
-{{ "hello world" | replace("world", "HubSpot") }}  → hello HubSpot
-{{ "hello" | center(11) }}             →    hello
-{{ "slug-name-2" | regex_replace("[^a-zA-Z]", "") }} → slugname
-{{ content.body | truncatehtml(200, "…", false) }}
-{{ value | escape }}                   {# HTML-escape #}
-{{ value | escape_jinjava }}           {# Escape for Jinjava contexts #}
-{{ value | unescape_html }}            {# HTML entities → Unicode #}
+{# Declare which properties are needed — outputs a signed API URL script tag #}
+{% require_personalization_properties
+   contact_properties="firstname,lastname,lifecyclestage"
+   company_properties="name,industry" %}
+
+{# Include the signed URL in a script for client-side JS to use #}
+<script>
+  var personalizationUrl = "{{ personalization_api_url('firstname,lastname', 'name') }}";
+</script>
+
+{# Use personalization_token for direct server-side rendering (non-cached contexts only) #}
+{{ personalization_token("contact.firstname", "there") }}
 ```
 
-**Date filters:**
+---
+
+### 14. Filters reference
+
+Filters transform values with the pipe syntax: `{{ value | filter_name(args) }}`.
+
+**String:**
 
 ```hubl
-{{ post.publish_date | date_to_format("MMMM d, yyyy") }}   → June 9, 2026
-{{ timestamp | datetimeformat("%B %d, %Y") }}              {# deprecated, use date_to_format #}
-{{ start | between_times(end) }}       {# duration between two timestamps #}
+{{ "hello world" | capitalize }}           → Hello world
+{{ "hello world" | title }}                → Hello World
+{{ "HELLO" | lower }}                      → hello
+{{ "hello" | upper }}                      → HELLO
+{{ "  hello  " | trim }}                   → hello
+{{ "hello world" | truncate(5, "…") }}     → hello…
+{{ html | truncatehtml(200, "…", false) }}
+{{ "<b>hi</b>" | striptags }}              → hi
+{{ "hello world" | replace("world", "HubSpot") }}
+{{ "hello" | center(11) }}                 →    hello
+{{ "slug-2" | regex_replace("[^a-zA-Z]", "") }}  → slug
+{{ value | escape }}            {# HTML-escape #}
+{{ value | escape_jinjava }}    {# Jinjava-safe escaping #}
+{{ value | unescape_html }}     {# HTML entities → Unicode #}
+{{ text | cut("ll") }}          {# remove all occurrences of substring #}
+{{ text | wordcount }}
+{{ text | indent(4) }}
+{{ value | safe }}              {# mark as HTML-safe, skip auto-escaping #}
 ```
 
-**Number filters:**
+**Date:**
 
 ```hubl
-{{ -5 | abs }}         → 5
-{{ "42" | int }}       → 42
-{{ 42 | int + 8 }}     → 50
-{{ 1234567 | filesizeformat }}  → 1.2 MB
+{{ content.publish_date | date_to_format("MMMM d, yyyy") }}   → June 9, 2026
+{{ content.publish_date | date_to_format("yyyy-MM-dd HH:mm:ss") }}
+{{ start | between_times(end) }}   {# duration string between two timestamps #}
 ```
 
-**Sequence filters:**
+Date format uses Java `SimpleDateFormat` patterns. Common tokens: `yyyy` year, `MM` month, `dd` day, `HH` 24h hour, `mm` minute, `ss` second, `a` AM/PM.
+
+**Number:**
+
+```hubl
+{{ -5 | abs }}                → 5
+{{ "42" | int }}              → 42
+{{ 1234567 | filesizeformat }} → 1.2 MB
+{{ "#336699" | convert_rgb }} → rgb(51, 102, 153)
+{{ value | add(10) }}
+{{ value | bool }}
+```
+
+**Sequence:**
 
 ```hubl
 {{ items | sort }}
@@ -430,39 +632,27 @@ Filters transform values using the pipe syntax: `{{ value | filter_name(args) }}
 {{ items | unique | list }}
 {{ items | first }}
 {{ items | last }}
-{{ items | length }}    {# or | count #}
+{{ items | length }}           {# or | count #}
 {{ items | join(", ") }}
 {{ items | join(", ", attribute="name") }}
 {{ items | map(attribute="name") | join(", ") }}
 {{ items | selectattr("active", "equalto", true) | list }}
 {{ items | rejectattr("hidden") | list }}
 {{ items | groupby("category") }}
-{{ items | batch(3) }}      {# groups of 3 #}
+{{ items | batch(3) }}         {# groups of 3 #}
 {{ items | shuffle }}
 {{ items | sum(attribute="price") }}
 {{ items | min(attribute="price") }}
 {{ items | max(attribute="price") }}
 {{ items | union(other_list) | list }}
-```
-
-**Utility filters:**
-
-```hubl
 {{ my_dict | attr("key") }}
-{{ my_var | pprint }}            {# debug dump #}
-{{ value | safe }}               {# mark as safe, skip auto-escaping #}
-{{ value | bool }}               {# coerce to boolean #}
-{{ my_dict | list }}             {# convert to list of keys #}
-{{ "#F7761F" | convert_rgb }}    {# color hex → rgb(...) #}
-{{ text | indent(4) }}           {# indent lines by 4 spaces #}
-{{ "hello" | cut("ll") }}        → heo
-{{ text | wordcount }}           {# word count #}
-{{ items | add(5) }}             {# add numeric value to each #}
+{{ my_dict | list }}           {# keys only #}
+{{ value | pprint }}           {# debug dump #}
 ```
 
 ---
 
-### 13. Operators and expression tests
+### 15. Operators and expression tests
 
 **Comparison and logic:**
 
@@ -471,94 +661,148 @@ Filters transform values using the pipe syntax: `{{ value | filter_name(args) }}
 {% if a > b %}    {% if a >= b %}
 {% if a < b %}    {% if a <= b %}
 {% if a and b %}  {% if a or b %}  {% if not a %}
-```
-
-**Membership and containment:**
-
-```hubl
-{% if "foo" in my_list %}
 {% if "key" in my_dict %}
-{% if value is none %}
-{% if value is not none %}
+{% if "foo" in my_list %}
 ```
 
-**Expression tests (use with `is`):**
+**Expression tests (use with `is` / `is not`):**
 
 | Test | Meaning |
 |---|---|
-| `is boolean` | Value is a boolean |
-| `is containing(x)` | Sequence contains `x` |
-| `is containingall([x,y])` | Sequence contains all of `x`, `y` |
-| `is defined` | Variable is defined |
-| `is divisibleby(n)` | Number is divisible by `n` |
-| `is equalto(x)` / `is eq(x)` | Equals `x` |
-| `is even` | Number is even |
-| `is ge(x)` / `is greaterthanorequalto(x)` | ≥ x |
-| `is gt(x)` / `is greaterthan(x)` | > x |
-| `is iterable` | Value can be iterated |
-| `is le(x)` / `is lessthanorequalto(x)` | ≤ x |
-| `is lt(x)` / `is lessthan(x)` | < x |
-| `is mapping` | Value is a dict/map |
-| `is ne(x)` / `is notequalto(x)` | ≠ x |
-| `is none` | Value is null/None |
-| `is number` | Value is numeric |
-| `is odd` | Number is odd |
-| `is sameas(x)` | Same object identity |
-| `is sequence` | Value is a sequence |
-| `is string` | Value is a string |
+| `is boolean` | Is a boolean |
+| `is true` | Is boolean `true` |
+| `is false` | Is boolean `false` |
+| `is truthy` | Evaluates to truthy |
+| `is none` | Is null/None |
 | `is undefined` | Variable is not defined |
+| `is defined` | Variable is defined |
+| `is string` | Is a string |
+| `is string_containing(x)` | String contains `x` |
+| `is string_startingwith(x)` | String starts with `x` |
+| `is lower` | All lowercase |
+| `is upper` | All uppercase |
+| `is number` | Is numeric |
+| `is integer` | Is integer or long |
+| `is float` | Is a float |
+| `is even` | Number is even |
+| `is odd` | Number is odd |
+| `is divisibleby(n)` | Divisible by `n` |
+| `is sequence` | Is iterable |
+| `is iterable` | Can be iterated |
+| `is mapping` | Is a dict/map |
+| `is containing(x)` | List contains `x` |
+| `is containingall([x,y])` | List contains all of `x`, `y` |
+| `is in(list)` | Value is in the iterable |
+| `is equalto(x)` / `is eq(x)` | Equals `x` |
+| `is ne(x)` / `is notequalto(x)` | ≠ x |
+| `is gt(x)` / `is greaterthan(x)` | > x |
+| `is ge(x)` | ≥ x |
+| `is lt(x)` / `is lessthan(x)` | < x |
+| `is le(x)` | ≤ x |
+| `is sameas(x)` | Same object identity |
 
 ---
 
-### 14. Email personalization (Marketing Hub)
+### 16. Email templates (Marketing Hub)
 
-HubL in email templates supports contact property tokens and conditional visibility:
+**Required variables in every email template:**
 
 ```hubl
-{# Contact tokens #}
+{{ unsubscribe_section }}      {# renders full unsubscribe block — REQUIRED by CAN-SPAM #}
+{{ unsubscribe_anchor }}       {# just the <a> tag link #}
+{{ unsubscribe_link_all }}     {# link to unsubscribe from all emails #}
+{{ view_as_page_url }}         {# link to web version #}
+{{ view_as_page_section }}     {# web version link with help text #}
+{{ subscription_confirmation_url }}
+{{ subscription_name }}
+```
+
+**Contact personalization:**
+
+```hubl
 Hi {{ contact.firstname | default("there") }},
 
-{# Fallback values for missing properties #}
 {{ contact.company | default("your company") }}
+```
 
-{# Content attribute blocks (email-specific layout) #}
-{% content_attribute "email_body" %}
-  <p>Hi {{ contact.firstname }},</p>
-  <p>{{ content.email_body }}</p>
-{% end_content_attribute %}
+**Email-specific style variables** (aliases for `site_settings.*` configured in Marketing > Email > Configuration):
+
+```hubl
+{{ email_body_width }}           {# e.g. "600px" #}
+{{ email_body_padding }}
+{{ primary_font }}
+{{ primary_font_color }}
+{{ primary_font_size }}
+{{ primary_font_size_num }}      {# number only, no "px" #}
+{{ primary_accent_color }}
+{{ secondary_font }}
+{{ secondary_font_color }}
+{{ body_color }}
+{{ background_color }}
+{{ body_border_color }}
+{{ body_border_color_choice }}   {# BORDER_AUTOMATIC | BORDER_MANUAL | BORDER_NONE #}
+{{ email_body_border_css }}      {# generates inline border CSS #}
+```
+
+**Email content variables:**
+
+```hubl
+{{ content.subject }}
+{{ content.from_name }}
+{{ content.reply_to }}
+{{ content.email_body }}         {# renders main rich text module #}
+{{ content.emailbody_plaintext }}
+{% if content.create_page %}     {# true if web version exists #}
+  {{ view_as_page_url }}
+{% endif %}
+```
+
+**Unsubscribe tags:**
+
+```hubl
+{% email_subscriptions header="Manage your preferences" %}
+{% email_simple_subscription header="Unsubscribe" %}
+{% email_subscriptions_confirmation header="Preferences updated" %}
 ```
 
 **Email-specific limits:**
 - `postal_location()` is limited to 1 call per email render.
-- Complex HubDB/CRM queries may not be available in all email contexts — test in preview mode.
+- Complex HubDB/CRM queries may not be available in all email contexts.
 
 ---
 
 ## Verification
 
 - [ ] Template renders without `Rendering error` in the Design Manager preview.
-- [ ] Whitespace/newlines around `{%- -%}` blocks look correct in the rendered HTML source.
-- [ ] `for` loops have a corresponding `{% else %}` fallback for empty sequences where appropriate.
+- [ ] Whitespace/newlines around `{%- -%}` blocks look correct in rendered HTML source.
+- [ ] `for` loops have `{% else %}` fallbacks for empty sequences where appropriate.
 - [ ] HubDB queries are within the 10-call-per-render limit.
 - [ ] `export_to_template_context` modules are not inside DnD areas.
-- [ ] Date formats use `date_to_format` (not deprecated `datetimeformat`).
+- [ ] Date formats use `date_to_format` with Java `SimpleDateFormat` patterns (not deprecated `datetimeformat`/strftime patterns).
+- [ ] Email templates include `{{ unsubscribe_section }}` (required by CAN-SPAM).
+- [ ] CRM object types that require membership gating are only used on password-protected pages.
 
 ## Failure modes
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| `Variable "X" could not be resolved` | Variable name typo or not in scope | Check `{{ request \| pprint }}` or `{{ content \| pprint }}` to inspect available keys |
-| Blank output from a `for` loop | Sequence is empty and no `{% else %}` | Add `{% else %}<p>No results.</p>{% endfor %}` |
+| `Variable "X" could not be resolved` | Variable name typo or not in scope | Use `{{ request \| pprint }}` or `{{ content \| pprint }}` to inspect available keys |
+| Blank output from `for` loop | Empty sequence, no `{% else %}` | Add `{% else %}<p>No results.</p>{% endfor %}` |
 | Extra blank lines in rendered HTML | Missing whitespace control | Add `-` to `{%- tag -%}` delimiters |
-| HubDB returns no results | Table is in draft mode or wrong table name | Publish the table; confirm table name/ID in HubDB UI |
-| `export_to_template_context` not working | Module is inside a DnD area | Move the module to a static template section |
-| Date format shows wrong output | Using old `datetimeformat` patterns (strftime) | Switch to `date_to_format` with Java `SimpleDateFormat` patterns (e.g., `"MMMM d, yyyy"`) |
-| `{{ value }}` printed literally | Wrapped in `{% raw %}` block | Remove the `raw` wrapper |
-| CRM query returns 0 results | Filter syntax error or missing properties | Test the filter string in the HubSpot CRM directly first |
+| HubDB returns no results | Table in draft mode, wrong name | Publish the table; confirm table ID/name in HubDB UI |
+| `export_to_template_context` not working | Module is inside a DnD area | Move the module to a static section |
+| Date format shows wrong output | Using strftime patterns with `date_to_format` | Switch to Java patterns: `yyyy`, `MM`, `dd`, `HH`, `mm` |
+| `{{ value }}` printed literally | Wrapped in `{% raw %}` | Remove the `raw` block |
+| CRM query returns 0 on public page | Built-in CRM object type on unprotected page | Restrict page with password or Membership; only `product` and custom objects are public |
+| `namespace()` variable not updating inside loop | Using `set` directly instead of `set ns.key` | Use `{% set ns = namespace(...) %}` and update with `{% set ns.key = value %}` |
+| Loop variable not accessible after `break` | Expected — `break` exits the loop entirely | Capture needed values before `break`, or use `namespace()` |
+| Email unsubscribe link missing | Template doesn't include `{{ unsubscribe_section }}` | Add the required tag; HubSpot may block sends without it |
 
 ## Escalation
 
-- For HubL syntax questions beyond this skill, consult the [official HubL reference](https://developers.hubspot.com/docs/cms/reference/hubl/overview).
-- For HubDB schema design or CRM object associations, see `hubspot-hubdb` and `hubspot-crm-objects` skills (when created).
+- Full function signatures: [references/functions.md](references/functions.md)
+- Full variable reference: [references/variables.md](references/variables.md)
+- Official HubL reference: https://developers.hubspot.com/docs/cms/reference/hubl/overview
+- HubL function limits for emails: https://developers.hubspot.com/changelog/breaking-change-hubl-function-limits-for-marketing-emails
+- For HubDB schema design, see `hubspot-hubdb` skill (when created).
 - For the Local Development CLI (`hs watch`, `hs upload`), see `hubspot-local-dev` skill (when created).
-- HubL function limits for emails are tracked at [developers.hubspot.com/changelog](https://developers.hubspot.com/changelog/breaking-change-hubl-function-limits-for-marketing-emails).
