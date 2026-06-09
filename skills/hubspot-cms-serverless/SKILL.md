@@ -1,11 +1,11 @@
 ---
 name: hubspot-cms-serverless
-description: "Write and deploy HubSpot CMS serverless functions — endpoint functions, secrets, logging, and calling third-party APIs from CMS pages"
-compatibility: "Content Hub Enterprise only; Node.js v20+; CLI v7+"
+description: "Write and deploy HubSpot CMS serverless functions — two distinct patterns (standalone theme functions vs. project-based app functions), secrets, logging, and calling external APIs"
+compatibility: "Content Hub Enterprise (standalone endpoint functions); Enterprise subscription for project app functions; Node.js v20+; CLI v7+"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
+    version: "1.1"
     written: "2026-06-09"
     written_against:
         hubspot-cli: "7.10"
@@ -16,227 +16,374 @@ metadata:
 ## When to use
 
 Use this skill when:
-- A CMS page needs to call an external API (weather, inventory, third-party data) server-side
-- You need to process form data or run logic not expressible in HubL
-- Building a dynamic data endpoint accessible via URL from JavaScript on a CMS page
-- Integrating a CMS page with HubSpot CRM data via server-side logic
+- A CMS page needs to call an external API server-side (weather, inventory, third-party enrichment)
+- Processing form submissions or running server-side business logic from a CMS page
+- A React CMS module needs to hit an API without exposing credentials in the browser
+- Integrating CMS pages with HubSpot CRM data via server-side calls
 
-**Important:** CMS serverless functions (endpoint functions in themes/standalone) are a **Content Hub Enterprise** feature. They are distinct from serverless functions in Developer Projects (Private Apps), which have different requirements. This skill covers CMS theme-based serverless functions.
+**There are two distinct serverless patterns in HubSpot. Choose based on your project setup:**
+
+| Pattern | Where functions live | URL prefix | Tier |
+|---|---|---|---|
+| **Standalone** (theme/CMS file system) | `*.functions/` directory uploaded via `hs upload` | `/_hcms/api/<endpoint>` | Content Hub Enterprise |
+| **Project-based** (inside an `hsproject.json` project) | `<app>.functions/` inside a project's `src/app/` | `/hs/serverless/<endpoint>` | Enterprise subscription |
+
+This skill covers both. The project-based pattern is the modern default for React CMS projects.
 
 ## Inputs required
 
-- HubSpot account with **Content Hub Enterprise** subscription
-- HubSpot CLI installed and authenticated (see `hubspot-cms-local-dev`)
-- Node.js v20+ (v18 support ended October 2025; new functions must use v20+)
-- The function's purpose: what endpoint does it expose, what data does it fetch/process?
-- Any API keys or secrets the function needs
+- HubSpot account with **Content Hub Enterprise** (standalone) or **Enterprise subscription** (project-based)
+- Node.js v20+ (`node --version`) — v18 is end-of-life for new HubSpot serverless deployments
+- HubSpot CLI installed and authenticated — see `hubspot-cms-local-dev`
+- External API credentials (store as HubSpot secrets, never hard-code)
 
 ## Procedure
 
-### 1. Create a serverless function via CLI
+---
+
+## Pattern A: Standalone endpoint functions (theme / CMS file system)
+
+Use this when working with a standard HubL theme — no `hsproject.json` required.
+
+### A1. Create a functions directory
 
 ```bash
 hs create function
-# Prompts for:
-#   - Name of the parent functions folder
-#   - Function file name
-#   - HTTP methods (GET, POST, etc.)
-#   - Endpoint path (e.g., /my-endpoint)
+# Prompts: parent folder name, function file name, HTTP methods, endpoint path
 ```
 
-This creates a `.functions` directory:
-
+Creates:
 ```
 my-functions.functions/
-├── serverless.json       # registers functions and their endpoints
-└── my-endpoint.js        # the function handler
+├── serverless.json     # registers endpoints
+└── my-endpoint.js      # handler file
 ```
 
-### 2. `serverless.json` structure
+### A2. `serverless.json`
 
 ```json
 {
   "runtime": "nodejs20.x",
   "version": "1.0",
   "environment": {
-    "MY_CONFIG_VAR": "non-secret value"
+    "PUBLIC_CONFIG": "non-secret value"
   },
-  "secrets": ["MY_API_KEY"],
+  "secrets": ["WEATHER_API_KEY", "HUBSPOT_TOKEN"],
   "endpoints": {
-    "get-data": {
+    "get-weather": {
       "method": "GET",
-      "file": "get-data.js"
+      "file": "get-weather.js"
     },
-    "submit-form": {
+    "submit-lead": {
       "method": "POST",
-      "file": "submit-form.js"
+      "file": "submit-lead.js"
     }
   }
 }
 ```
 
-- `runtime`: always use `nodejs20.x` (v18 is end-of-life for new deployments)
-- `secrets`: array of secret names to inject as environment variables
-- `endpoints`: maps URL path segments to handler files and HTTP methods
-- The function is accessible at `/_hcms/api/<endpoint-name>`
+- `runtime`: use `nodejs20.x` — `nodejs18.x` cannot be deployed for new functions
+- `secrets`: names of secrets added via `hs secrets add`; injected as `process.env.*`
+- `endpoints`: maps URL path segments to handler files
 
-### 3. Function handler structure
+### A3. Handler structure
 
 ```js
-// get-data.js
+// get-weather.js
 const https = require('https');
 
 exports.main = async (context, sendResponse) => {
-  const { MY_API_KEY } = process.env;
-  const { queryParameters, body, headers } = context;
+  const { WEATHER_API_KEY } = process.env;
+  const { queryParameters } = context;
+  const city = queryParameters.city || 'London';
 
   try {
-    // Fetch from an external API
-    const data = await fetchExternalData(MY_API_KEY, queryParameters.query);
-
+    const data = await fetchWeather(WEATHER_API_KEY, city);
     sendResponse({
       statusCode: 200,
-      body: JSON.stringify({ results: data }),
+      body: JSON.stringify({ city, forecast: data }),
     });
   } catch (err) {
-    console.error('Function error:', err.message);
+    console.error('Weather fetch failed:', err.message);
     sendResponse({
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to fetch data' }),
+      body: JSON.stringify({ error: 'Could not fetch weather data' }),
     });
   }
 };
-
-async function fetchExternalData(apiKey, query) {
-  // ... your fetch logic
-}
 ```
 
 **The `context` object:**
 
 ```js
 {
-  queryParameters: { key: 'value' },   // URL query string params
-  body: { ... },                        // POST body (parsed JSON or form data)
-  headers: { authorization: '...' },   // request headers
-  params: { },                          // path parameters
-  accountId: 123456,                    // the HubSpot portal ID
-  limits: {
-    timeRemaining: 9000                 // ms remaining before timeout (10s max)
+  queryParameters: { city: 'London' },  // URL query string
+  body: { ... },                         // parsed POST body
+  headers: { 'x-custom': 'value' },
+  accountId: 12345678,                   // HubSpot portal ID
+  limits: { timeRemaining: 9000 }        // ms before 10s timeout
+}
+```
+
+### A4. Call from page JavaScript
+
+Standalone functions are available at `/_hcms/api/<endpoint-name>`:
+
+```js
+// In a module's module.js or a <script> block in a template:
+fetch('/_hcms/api/get-weather?city=London')
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('weather').textContent = data.forecast.summary;
+  });
+```
+
+```js
+// POST example
+fetch('/_hcms/api/submit-lead', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email: 'user@example.com', source: 'homepage' }),
+})
+  .then(r => r.json())
+  .then(data => { /* handle response */ });
+```
+
+### A5. Upload and watch
+
+```bash
+hs upload ./my-functions.functions my-functions.functions
+# or as part of a theme watch:
+hs watch ./my-theme themes/my-theme
+```
+
+### A6. View logs
+
+```bash
+hs logs my-functions --follow
+```
+
+- Includes `console.log()` / `console.error()` output, execution time, status codes
+- Retained for 90 days
+- Also visible in **Design Manager → Serverless Functions**
+
+---
+
+## Pattern B: Project-based app functions (Developer Platform)
+
+Use this for React CMS projects or any project built with `hsproject.json`. Based on the [HubSpot CMS React + Serverless example](https://github.com/HubSpot/cms-react/tree/main/examples/serverless).
+
+### B1. Project structure
+
+```
+my-project/
+├── hsproject.json
+└── src/
+    └── app/
+        ├── app.json                    # app metadata and OAuth scopes
+        └── app.functions/              # functions directory
+            ├── serverless.json         # registers app functions
+            ├── parrot-function.js      # handler
+            └── package.json            # per-functions npm dependencies
+```
+
+### B2. `app.json`
+
+```json
+{
+  "name": "My CMS App",
+  "description": "CMS React project with serverless data fetching",
+  "scopes": [
+    "crm.objects.contacts.read",
+    "crm.objects.companies.read",
+    "collector.graphql_schema.read",
+    "collector.graphql_query.execute"
+  ],
+  "uid": "my_cms_app",
+  "public": false
+}
+```
+
+Add only the OAuth scopes your functions actually use.
+
+### B3. Project `serverless.json`
+
+Project-based functions use `appFunctions` instead of `endpoints`:
+
+```json
+{
+  "appFunctions": {
+    "parrotFunction": {
+      "file": "parrot-function.js",
+      "endpoint": {
+        "path": "parrot",
+        "method": ["GET"]
+      }
+    },
+    "fetchContact": {
+      "file": "fetch-contact.js",
+      "endpoint": {
+        "path": "contact",
+        "method": ["GET"]
+      }
+    }
   }
 }
 ```
 
-### 4. Manage secrets
+### B4. Handler — same `exports.main` signature
 
-Secrets are stored encrypted in HubSpot — never hardcode API keys in function files.
+```js
+// parrot-function.js — from HubSpot's cms-react serverless example
+exports.main = async (context) => {
+  return {
+    statusCode: 200,
+    body: {
+      message: `SQUAWK: ${context.params.message}`,
+    },
+  };
+};
+```
+
+Note: project handlers **return** the response object rather than calling `sendResponse`.
+
+```js
+// fetch-contact.js — CRM API call example
+exports.main = async (context) => {
+  const { contactId } = context.params;
+  const token = process.env.HUBSPOT_TOKEN;
+
+  const res = await fetch(
+    `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}?properties=firstname,lastname,email`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  const contact = await res.json();
+
+  return {
+    statusCode: 200,
+    body: { firstname: contact.properties.firstname, email: contact.properties.email },
+  };
+};
+```
+
+### B5. Call from a React Island component
+
+Project-based functions are at `/hs/serverless/<endpoint-path>`:
+
+```jsx
+// MakeServerlessRequestIsland.jsx
+import { useState } from 'react';
+
+export default function MakeServerlessRequestIsland() {
+  const [results, setResults] = useState([]);
+  const [message, setMessage] = useState('');
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    fetch(`/hs/serverless/parrot?message=${encodeURIComponent(message)}`)
+      .then(r => r.json())
+      .then(data => setResults(prev => [...prev, data.message]));
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        value={message}
+        onChange={e => setMessage(e.target.value)}
+      />
+      <button type="submit">Send</button>
+      <ul>
+        {results.map((item, i) => <li key={i}>{item}</li>)}
+      </ul>
+    </form>
+  );
+}
+```
+
+The Island component wraps this in the parent module entry point:
+
+```jsx
+// index.jsx
+import { Island } from '@hubspot/cms-components';
+import MakeServerlessRequestIsland from './MakeServerlessRequestIsland?island';
+
+export function Component() {
+  return (
+    <Island
+      id="make-serverless-request"
+      module={MakeServerlessRequestIsland}
+    />
+  );
+}
+export const fields = [];
+export const meta = { label: 'Serverless Demo' };
+```
+
+### B6. Deploy the project
+
+```bash
+hs project upload
+```
+
+This builds and deploys both the React assets and the serverless functions together.
+
+---
+
+## Managing secrets (both patterns)
 
 ```bash
 # Add a secret
-hs secrets add MY_API_KEY
-# Prompts for the secret value
+hs secrets add WEATHER_API_KEY
+# Prompts for the value (not echoed)
 
-# List secrets
+# List secrets (names only — values never shown)
 hs secrets list
 
 # Delete a secret
-hs secrets delete MY_API_KEY
+hs secrets delete WEATHER_API_KEY
 ```
 
-Reference in function code:
+Reference in any handler:
 ```js
-const apiKey = process.env.MY_API_KEY;
+const apiKey = process.env.WEATHER_API_KEY;
 ```
 
-### 5. Upload and deploy
+Never commit secret values. Never read them from `process.argv` or query parameters.
 
-```bash
-# Upload the functions directory
-hs upload ./my-functions.functions my-functions.functions
-
-# Watch during development
-hs watch ./my-functions.functions my-functions.functions
-```
-
-The endpoint becomes available at:
-`https://<your-hubspot-domain>/_hcms/api/<endpoint-name>`
-
-### 6. Call the function from a CMS page
-
-In a module's `module.js` or a `<script>` in a template:
-
-```js
-// GET request with query params
-fetch('/_hcms/api/get-data?query=mySearch')
-  .then(res => res.json())
-  .then(data => {
-    document.querySelector('#results').innerHTML = data.results
-      .map(r => `<li>${r.name}</li>`)
-      .join('');
-  })
-  .catch(err => console.error(err));
-```
-
-```js
-// POST request with body
-fetch('/_hcms/api/submit-form', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email: 'user@example.com', name: 'Alice' })
-})
-  .then(res => res.json())
-  .then(data => { /* handle response */ });
-```
-
-### 7. View logs
-
-```bash
-hs logs <function-name>
-```
-
-- Logs include `console.log()` / `console.error()` output, execution time, and status codes
-- Logs are retained for **90 days**
-- You can also view logs in HubSpot UI: **CRM Development → Private Apps → [App] → Logs**
-
-### 8. Local testing
-
-The CLI does not run functions locally. Options for local testing:
-1. Upload to a sandbox/developer HubSpot account and test there
-2. Extract business logic into a testable module and unit-test it with Node.js
-3. Use `hs watch` to get rapid upload-and-test cycles
-
-### 9. Constraints and limits
+## Constraints and limits
 
 | Constraint | Limit |
 |---|---|
 | Execution timeout | 10 seconds |
 | Memory | 128 MB |
+| Runtime | `nodejs20.x` only (v18 deprecated Oct 2025) |
 | Log retention | 90 days |
-| Runtime | Node.js v20.x only (v18 deprecated) |
-| Concurrent executions | Subject to HubSpot account limits |
-| Secrets per function | Unlimited |
+| Standalone endpoint URL | `/_hcms/api/<endpoint>` |
+| Project function URL | `/hs/serverless/<path>` |
 
 ## Verification
 
-- `hs upload` completes without error
-- `GET https://<domain>/_hcms/api/<endpoint>` returns expected JSON
-- `hs logs <function-name>` shows `console.log()` output from test requests
-- Function responses are visible in browser devtools Network tab when called from page JS
+- Standalone: `GET https://<domain>/_hcms/api/<endpoint>` returns expected JSON
+- Project: `GET https://<domain>/hs/serverless/<path>` returns expected JSON
+- `hs logs` shows `console.log()` output and execution time
+- Secrets listed in `hs secrets list`; `process.env.MY_SECRET` is non-null at runtime
 
 ## Failure modes
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| 404 on endpoint URL | `serverless.json` endpoint name typo or upload not completed | Check `serverless.json` endpoint key matches URL segment; re-upload |
-| 500 with no body | Unhandled exception in handler | Check `hs logs`; add `try/catch` and `console.error` |
-| Timeout (10s) | External API too slow or network issue | Add timeout to your `fetch` calls; consider caching |
-| `process.env.MY_SECRET` is undefined | Secret not added or wrong name | Run `hs secrets list`; names are case-sensitive |
-| "Content Hub Enterprise required" | Account not on Enterprise | Confirm subscription; serverless functions are Enterprise-only |
-| Old v18 function won't re-deploy | Node v18 end-of-life | Update `serverless.json` `runtime` to `nodejs20.x` |
+| 404 on `/_hcms/api/` | Wrong endpoint name or standalone function not uploaded | Check `serverless.json` key matches URL segment; re-upload |
+| 404 on `/hs/serverless/` | Project not deployed or `endpoint.path` mismatch | Run `hs project upload`; check `appFunctions` path in `serverless.json` |
+| 500 with empty body | Unhandled exception in handler | Add `try/catch`; check `hs logs` |
+| 10-second timeout | External API slow or hung | Add `AbortController` timeout to `fetch` calls; cache aggressively |
+| `process.env.MY_SECRET` undefined | Secret not added or wrong name | Run `hs secrets list`; names are case-sensitive |
+| "Enterprise required" error | Account not on Content Hub Enterprise | Confirm subscription tier |
+| `nodejs18.x` deploy rejected | v18 end-of-life | Change `runtime` in `serverless.json` to `nodejs20.x` |
 
 ## Escalation
 
-- For server-side functions within Developer Projects (private apps), the pattern differs — see `hubspot-private-apps`.
-- For React CMS projects with serverless integration, see `hubspot-cms-react`.
-- For accessing HubSpot CRM data from a function, add the private app access token as a secret and call the HubSpot API from the function.
-- [Serverless functions docs](https://developers.hubspot.com/docs/cms/features/serverless-functions)
+- For calling HubSpot CRM APIs from a function, store a private app access token as a secret and call `https://api.hubapi.com/crm/v3/...` with `Authorization: Bearer <token>`.
+- For UI extension app functions (in CRM cards, not CMS pages), see `hubspot-ui-extensions`.
+- For React Island components that call serverless functions, see `hubspot-cms-react`.
+- Reference: [cms-react serverless example](https://github.com/HubSpot/cms-react/tree/main/examples/serverless)

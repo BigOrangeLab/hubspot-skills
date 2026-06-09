@@ -1,11 +1,11 @@
 ---
 name: hubspot-cms-local-dev
-description: "Set up and operate the HubSpot local development environment — CLI install, auth, file sync, and preview workflow"
+description: "Set up and operate the HubSpot local development environment — CLI install, auth, file sync, watch, and preview workflow"
 compatibility: "All Content Hub tiers; CLI v7+"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
+    version: "1.1"
     written: "2026-06-09"
     written_against:
         hubspot-cli: "7.10"
@@ -13,19 +13,18 @@ metadata:
 
 ## When to use
 
-Use this skill whenever starting any HubSpot CMS development work locally — before building themes, modules, or templates. Also use when:
+Use this skill whenever starting any HubSpot CMS development work locally — it is the prerequisite for all CMS theme, module, and template skills. Also use when:
 - Connecting a new machine to a HubSpot account
-- Switching between multiple HubSpot accounts
-- Troubleshooting sync or upload issues
-- Setting up version control for CMS assets
+- Switching between or adding multiple HubSpot accounts
+- Setting up CI/CD deployment via GitHub Actions
+- Troubleshooting sync, upload, or authentication failures
 
 ## Inputs required
 
-- HubSpot account with Content Hub access (Starter or higher for most features)
 - Node.js v20 or higher (`node --version`)
-- npm (comes with Node)
-- HubSpot account ID (found in account settings URL: `app.hubspot.com/settings/<accountId>`)
-- Personal Access Key from HubSpot (for CLI auth) — generate at: `app.hubspot.com/portal/<accountId>/personal-access-key`
+- A HubSpot account with Content Hub access
+- Your HubSpot **account ID** — visible in any HubSpot URL: `app.hubspot.com/settings/<accountId>/`
+- A **Personal Access Key** — generate at `app.hubspot.com/portal/<accountId>/personal-access-key` (requires "Content" scope at minimum; tick "Design Manager" under CMS access)
 
 ## Procedure
 
@@ -33,119 +32,198 @@ Use this skill whenever starting any HubSpot CMS development work locally — be
 
 ```bash
 npm install -g @hubspot/cli
-hs --version   # confirm install; expect 7.x
+hs --version    # expect 7.x
 ```
 
-### 2. Initialize configuration
+For projects that pin the CLI as a dev dependency:
+```bash
+npm install --save-dev @hubspot/cli
+# then use: npx hs <command>
+```
 
-Run from your project root (or home directory for global config):
+### 2. Initialise configuration
+
+Run from your project root (creates `hubspot.config.yml` there):
 
 ```bash
 hs init
 ```
 
-This creates `hubspot.config.yml` in the current directory. It will prompt for:
-- **Account nickname** — a local alias (e.g., `mycompany-prod`)
-- **Personal Access Key** — paste the key generated from the portal URL above
+Prompts:
+1. **Enter a name for this account** — a local alias, e.g. `myco-prod`
+2. **Enter your Personal Access Key** — paste from the URL above
 
-For multiple accounts, run `hs auth` to add additional accounts to the same config file:
+The generated `hubspot.config.yml` looks like:
+
+```yaml
+defaultPortal: myco-prod
+portals:
+  - name: myco-prod
+    portalId: 12345678
+    authType: personalaccesskey
+    personalAccessKey: >-
+      pat-na1-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    auth:
+      tokenInfo:
+        accessToken: >-
+          xxxxx
+        expiresAt: '2026-06-09T12:00:00.000Z'
+```
+
+**Add `.gitignore` entry** — the config file contains credentials:
+```
+hubspot.config.yml
+```
+
+### 3. Add additional accounts
 
 ```bash
 hs auth
+# follow the same prompts; give the second account a distinct alias
 ```
 
-CLI v7+ supports multi-config — you can have per-project `hubspot.config.yml` files that override the global one. The CLI resolves configs walking up from the current directory.
-
-### 3. Verify authentication
+CLI v7+ supports multiple portals in one config. The `defaultPortal` key controls which account `hs` commands target.
 
 ```bash
-hs accounts list    # shows all configured accounts and which is default
+hs accounts list          # show all configured accounts
+hs accounts use myco-qa   # switch default for this session
 ```
 
-To switch the default account for the current session:
-
+To set a different default permanently, edit `hubspot.config.yml` and change `defaultPortal`, or:
 ```bash
-hs accounts use <nickname>
+hs accounts use --set-default myco-qa
 ```
 
-### 4. Fetch existing assets from HubSpot
+### 4. Fetch existing assets from your account
 
 ```bash
-# Fetch a specific directory from the Design Manager file system
-hs fetch <remote-path> <local-path>
-
-# Examples:
+# Fetch HubSpot's official boilerplate theme to a local directory
 hs fetch @hubspot/cms-theme-boilerplate my-theme
-hs fetch themes/my-theme ./local-theme
+
+# Fetch a specific theme already in your account
+hs fetch themes/my-existing-theme ./local-theme
+
+# Fetch a single module
+hs fetch themes/my-theme/modules/hero.module ./hero.module
 ```
 
-The remote path is relative to the root of the Design Manager file system.
+Remote paths are relative to the root of the Design Manager file system. Browse your file system at `app.hubspot.com/design-manager/<accountId>`.
 
-### 5. Watch for local changes and auto-upload
+### 5. Upload local assets to HubSpot
 
 ```bash
-cd <local-project-directory>
-hs watch <local-path> <remote-path>
+hs upload ./my-theme themes/my-theme
+```
 
-# Example: watch and sync a theme
+- `src` — local path (file or directory)
+- `dest` — destination path in the Design Manager file system
+
+Upload is recursive for directories. Existing files are overwritten.
+
+### 6. Watch mode — auto-upload on save
+
+```bash
 hs watch ./my-theme themes/my-theme
 ```
 
-Keep the watch process running during development. Every saved file is uploaded immediately.
+Keeps running and uploads every saved file immediately. Use during active development. Stop with `Ctrl-C`.
 
-### 6. Manual upload
-
-```bash
-hs upload <local-src> <remote-dest>
-
-# Upload an entire theme directory:
-hs upload ./my-theme themes/my-theme
-```
+Combined with your editor's auto-save, this makes the edit → preview loop near-instant.
 
 ### 7. Local preview server
 
 ```bash
-hs theme preview <local-theme-path>
+hs theme preview ./my-theme
 ```
 
-Opens `https://hslocal.net:3000/` — lists all templates and modules in the theme with clickable preview links. Also shows connected domains for domain-specific preview.
+Opens `https://hslocal.net:3000/` — lists all templates and modules in the theme with live preview links. Also shows connected domains for domain-scoped preview. Uses a self-signed certificate; accept the browser warning on first launch.
 
-### 8. Fetch Design Manager logs
+### 8. Per-project config (multi-account or monorepo)
+
+CLI v7 resolves `hubspot.config.yml` by walking up from the current directory, then falling back to `~/.hubspot.config.yml`. You can place a project-level config in the repo root:
 
 ```bash
-hs logs <function-name>    # serverless function logs
+hs init --config ./hubspot.config.yml
 ```
 
-### Project-based workflow (themes as Projects)
-
-For React CMS projects or themes wrapped in an `hsproject.json`:
-
+Or pass `--account` / `--portal` on any command to override:
 ```bash
-hs project create           # scaffold a new project
-hs project upload           # build and deploy to HubSpot
-hs project dev              # local dev server (React projects)
+hs upload ./my-theme themes/my-theme --account myco-staging
 ```
+
+### 9. CI/CD deployment with GitHub Actions
+
+Use the official [HubSpot CMS Deploy Action](https://github.com/HubSpot/hubspot-cms-deploy-action):
+
+**GitHub repository setup:**
+- Secret: `HUBSPOT_PERSONAL_ACCESS_KEY`
+- Variable: `HUBSPOT_ACCOUNT_ID`
+
+```yaml
+# .github/workflows/deploy.yml
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to HubSpot
+        uses: HubSpot/hubspot-cms-deploy-action@v2.0.1
+        with:
+          src_dir: src          # local path in repo
+          dest_dir: themes/my-theme  # destination in Design Manager
+          account_id: ${{ vars.HUBSPOT_ACCOUNT_ID }}
+          personal_access_key: ${{ secrets.HUBSPOT_PERSONAL_ACCESS_KEY }}
+```
+
+For staging/QA: create a second workflow triggered by a `qa` branch, pointing to a different account. The `dest_dir` can be the same since it's a different HubSpot account.
+
+### 10. `.hsignore` — exclude files from upload
+
+Same syntax as `.gitignore`. Place at the root of the directory being watched/uploaded:
+
+```
+node_modules/
+dist/
+.git/
+*.log
+.DS_Store
+hubspot.config.yml
+```
+
+Without this, `hs watch` will try to upload `node_modules/` which will hang or fail.
 
 ## Verification
 
-- `hs accounts list` shows your account with a `(default)` marker
-- `hs upload` completes without error and files appear in Design Manager
-- `https://hslocal.net:3000/` loads and lists theme templates/modules
-- Changes made locally appear on a preview page within seconds of saving
+```bash
+hs accounts list            # shows account with (default) marker
+hs upload ./test-file.html themes/test-file.html   # completes without error
+```
+
+- File appears in Design Manager immediately after upload
+- `https://hslocal.net:3000/` lists theme templates and modules
+- `hs watch` logs "Uploaded [filename]" within 1–2 seconds of saving
 
 ## Failure modes
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| `hs: command not found` | CLI not on PATH after install | Restart shell or run `npm install -g @hubspot/cli` again with correct Node version |
-| `401 Unauthorized` | Expired or wrong Personal Access Key | Regenerate key at `app.hubspot.com/portal/<id>/personal-access-key`, run `hs auth` again |
-| Config not found | Running `hs` outside a directory with `hubspot.config.yml` | Run `hs init` in project root, or set `--config` flag |
-| Watch upload hangs | Large binary files or `.gitignore` not excluding `node_modules` | Add a `.hsignore` file (same syntax as `.gitignore`) to exclude build artifacts |
-| `hslocal.net` certificate error | Browser not trusting self-signed cert | Accept the cert in browser, or run `hs theme preview` again which re-generates certs |
-| Multi-account confusion | Wrong default account | Run `hs accounts use <nickname>` to switch |
+| `hs: command not found` | CLI not on `$PATH` after global install | Restart shell; check `npm bin -g` is on PATH |
+| `401 Unauthorized` | Expired or wrong Personal Access Key | Regenerate key; run `hs auth` to update config |
+| `403 Forbidden` on upload | Key lacks Design Manager scope | Regenerate key with Content/Design Manager scope |
+| Config not found | Running `hs` outside a directory with config | Run `hs init` in project root or use `--config` flag |
+| Watch hangs on large upload | `node_modules/` or build output not excluded | Add `.hsignore` |
+| `hslocal.net` cert error | Self-signed cert not trusted by browser | Accept cert once, or open `https://hslocal.net:3000` directly and accept there |
+| Wrong account targeted | Default portal set to wrong account | `hs accounts use <alias>` or pass `--account` |
+| CI deploy fails with auth error | Secret name mismatch | Confirm secret is `HUBSPOT_PERSONAL_ACCESS_KEY` (not `HUBSPOT_ACCESS_KEY`) |
 
 ## Escalation
 
-- If Personal Access Key permissions are insufficient, ask the HubSpot account admin to grant Design Manager access in `Settings → Users & Teams`.
-- For CI/CD environments, use `HUBSPOT_PORTAL_ID` and `HUBSPOT_PERSONAL_ACCESS_KEY` environment variables instead of `hubspot.config.yml`.
-- See also: `hubspot-cms-themes`, `hubspot-cms-react` for next steps after environment setup.
+- If the Personal Access Key lacks permissions, ask the HubSpot account admin to grant access under `Settings → Users & Teams`.
+- For environment variables in CI without `hubspot.config.yml`, set `HUBSPOT_PORTAL_ID` and `HUBSPOT_PERSONAL_ACCESS_KEY` env vars — the CLI reads them as a fallback.
+- For project-based workflows (React CMS / `hsproject.json`), `hs project upload` and `hs project dev` replace `hs upload` and `hs watch` — see `hubspot-cms-react`.
+- Reference repos: [hubspot-cli](https://github.com/HubSpot/hubspot-cli), [hubspot-cms-deploy-action](https://github.com/HubSpot/hubspot-cms-deploy-action)

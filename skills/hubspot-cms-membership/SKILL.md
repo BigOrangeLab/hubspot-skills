@@ -1,11 +1,11 @@
 ---
 name: hubspot-cms-membership
-description: "Build password-protected member areas on HubSpot CMS — gating content, CRM-personalized pages, login flows, and membership templates"
+description: "Build password-protected member areas on HubSpot CMS — access groups, all four system templates, CRM contact personalisation, and conditional content gating"
 compatibility: "Content Hub Enterprise only"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
+    version: "1.1"
     written: "2026-06-09"
     written_against:
         hubspot-cli: "7.10"
@@ -16,127 +16,239 @@ metadata:
 
 Use this skill when:
 - Building a customer portal, partner area, or member-only content section
-- Gating blog posts, resource downloads, or event registrations behind login
-- Personalizing CMS pages with CRM contact/company/deal data for logged-in users
-- Implementing a user login/registration flow within HubSpot CMS
+- Gating individual pages, blog posts, or entire site sections behind login
+- Personalising CMS content with logged-in contact's CRM properties (name, company, deals, custom fields)
+- Implementing a full self-serve login/register/password-reset flow within HubSpot CMS
 
-**Content Hub Enterprise** is required. The Membership feature is not available on lower tiers.
+**Content Hub Enterprise is required.** Membership is not available on Starter or Professional.
 
 ## Inputs required
 
 - HubSpot account with Content Hub Enterprise
-- HubSpot CLI installed and authenticated (see `hubspot-cms-local-dev`)
-- A defined contact list in HubSpot (Membership groups contacts who can access gated content)
-- Templates to gate (existing or new page/blog templates)
-- Design for: login page, registration page, password reset flow
+- HubSpot CLI installed and authenticated — see `hubspot-cms-local-dev`
+- A theme with a base layout — see `hubspot-cms-themes`
+- A HubSpot contact list for each access tier (used to define who can view gated content)
+- Decision: **invite-only** (admin adds contacts to list manually) vs. **self-registration** (contacts create their own accounts)
 
 ## Procedure
 
-### 1. Enable Membership in HubSpot
+### 1. Enable Membership in HubSpot settings
 
 1. Go to **Settings → CMS → Membership**
-2. Enable the Membership feature for your domain
-3. Set the **Login page** — the page contacts land on when they hit gated content unauthenticated
-4. Set the **Registration page** (optional — if self-registration is allowed)
-5. Set the **Logout redirect** — where contacts go after logging out
+2. Enable Membership for your domain
+3. Assign the four system page templates (created in step 3 below):
+   - Login page
+   - Registration page (if self-registration is enabled)
+   - Password reset request page
+   - Password reset page
+4. Set the **Logout redirect URL** — where contacts land after logging out
 
-### 2. Create a membership access group
+### 2. Create access groups
 
-Membership access is controlled by **Contact Lists** in HubSpot:
+Access groups map a HubSpot contact list to a set of gated pages.
 
-1. Go to **Contacts → Lists**
-2. Create a static or active list of contacts who should have access
-3. In Membership settings, create an **Access Group** and link it to this list
+1. Go to **Settings → CMS → Membership → Access Groups**
+2. Click **Create access group**
+3. Give it a name (e.g. "Customers", "Partners", "Premium Members")
+4. Select the **Contact list** that defines who has access — this can be an active list with enrollment criteria (e.g. `Lifecycle Stage = Customer`) or a static list managed manually
 
-Contacts in the list can log in; contacts not in the list cannot access gated content even with a login.
+Contacts in the list have access; contacts not in the list are redirected to the login page even after logging in.
 
-### 3. Gate a page or blog post
+### 3. Build the four system templates
 
-**Gate a page:**
-1. Open the page in the CMS editor
-2. Go to **Settings → Advanced → Restrict access**
-3. Select **Membership** and choose the Access Group
+All membership templates should remove the site header and footer to prevent distraction on system flows. Note the correct `templateType` value for each — these are exact strings HubSpot requires.
 
-**Gate an entire blog:**
-1. Go to **Settings → Website → Blog → [Blog name]**
-2. Enable **Restrict to members** and assign an Access Group
-
-**Gate a folder of pages:**
-- Apply access restriction to a HubSpot page group — all pages in the group inherit the restriction
-
-### 4. Build a login template
-
-Create `templates/membership-login.html` in your theme:
+**Login template (`templateType: membership_login_page`)**
 
 ```html
 <!--
-  templateType: membership_login
-  label: "Member Login"
-  isAvailableForNewContent: false
+  templateType: membership_login_page
+  isAvailableForNewContent: true
+  label: Membership - Login
+  screenshotPath: ../../images/template-previews/membership-login.png
 -->
-{% extends "./base.html" %}
+{% set template_css = "../../css/templates/system.css" %}
+{% set pageTitle = "Membership | Login" %}
+{% extends "../layouts/base.html" %}
+
+{% block header %}{% endblock %}
 
 {% block body %}
-<main class="membership-login">
-  <div class="login-container">
-    <h1>Member Login</h1>
-
-    {# HubSpot renders the login form at this tag #}
-    {% membership_login_form %}
-
-    <p>
-      <a href="{{ membership.reset_password_url }}">Forgot your password?</a>
-    </p>
+<section class="content-wrapper">
+  <div class="systems-page">
+    {% module "intro"
+      path="@hubspot/rich_text",
+      html="<h1>Sign in to view this page</h1><p>This page is only available to authorised users.</p>"
+    %}
+    <div class="form-container">
+      {% member_login "login_form"
+        email_label="Email",
+        password_label="Password",
+        remember_me_label="Remember Me",
+        reset_password_text="Forgot your password?",
+        submit_button_text="Login"
+      %}
+    </div>
+    <div>
+      {% module_block module "admin_contact"
+        label="Contact admin"
+        path="@hubspot/rich_text"
+      %}
+        {% module_attribute "html" %}
+          <p>Having trouble?
+            <a href="{{ ("mailto:" ~ site_settings.membershipWebsiteAdmin)|escape_url }}">
+              Contact the admin
+            </a>.
+          </p>
+        {% end_module_attribute %}
+      {% end_module_block %}
+    </div>
   </div>
-</main>
+</section>
 {% endblock %}
 ```
 
-Key membership HubL tags:
-- `{% membership_login_form %}` — renders the login form (email + password)
-- `{% membership_registration_form %}` — renders the self-registration form
-- `{% membership_reset_password_form %}` — renders the password reset form
-
-### 5. Build a registration template
+**Registration template (`templateType: membership_register_page`)**
 
 ```html
 <!--
-  templateType: membership_register
-  label: "Member Registration"
-  isAvailableForNewContent: false
+  templateType: membership_register_page
+  isAvailableForNewContent: true
+  label: Membership - Register
 -->
-{% extends "./base.html" %}
+{% set pageTitle = "Membership | Register" %}
+{% extends "../layouts/base.html" %}
+
+{% block header %}{% endblock %}
 
 {% block body %}
-<main class="membership-register">
-  <h1>Create Your Account</h1>
-  {% membership_registration_form %}
-</main>
+<section class="content-wrapper">
+  <div class="systems-page">
+    {% module "intro"
+      path="@hubspot/rich_text",
+      html="<h1>Welcome!</h1><p>Set up your password to access your account.</p>"
+    %}
+    <div class="form-container">
+      {% member_register "register_form"
+        email_label="Email",
+        password_label="Password",
+        password_confirm_label="Confirm Password",
+        submit_button_text="Save Password"
+      %}
+    </div>
+  </div>
+</section>
 {% endblock %}
 ```
 
-### 6. Personalize content for logged-in contacts
+**Password reset request template (`templateType: membership_reset_request_page`)**
 
-When a contact is logged in, their CRM data is available via the `contact` variable:
+```html
+<!--
+  templateType: membership_reset_request_page
+  isAvailableForNewContent: true
+  label: Membership - Reset Password Request
+-->
+{% set pageTitle = "Membership | Reset password" %}
+{% extends "../layouts/base.html" %}
+
+{% block header %}{% endblock %}
+
+{% block body %}
+<section class="content-wrapper">
+  <div class="systems-page">
+    {% module "intro"
+      path="@hubspot/rich_text",
+      html="<h1>Reset your password</h1><p>Enter the email address for your account.</p>"
+    %}
+    <div class="form-container">
+      {% password_reset_request "reset_request_form"
+        email_label="Email",
+        submit_button_text="Send Reset Email"
+      %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+```
+
+**Password reset template (`templateType: membership_reset_page`)**
+
+```html
+<!--
+  templateType: membership_reset_page
+  isAvailableForNewContent: true
+  label: Membership - Reset Password
+-->
+{% set pageTitle = "Membership | Reset password" %}
+{% extends "../layouts/base.html" %}
+
+{% block header %}{% endblock %}
+
+{% block body %}
+<section class="content-wrapper">
+  <div class="systems-page">
+    {% module "intro"
+      path="@hubspot/rich_text",
+      html="<h1>Choose a new password</h1>"
+    %}
+    <div class="form-container">
+      {% password_reset "reset_form"
+        password_label="New Password",
+        password_confirm_label="Confirm Password",
+        submit_button_text="Save Password"
+      %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+```
+
+**Template type reference:**
+
+| Template purpose | `templateType` value |
+|---|---|
+| Login | `membership_login_page` |
+| Register | `membership_register_page` |
+| Reset password (request email) | `membership_reset_request_page` |
+| Reset password (set new password) | `membership_reset_page` |
+
+### 4. Gate a page or blog post
+
+**Single page:** open the page editor → Settings → Advanced → Restrict access → Membership → select the Access Group
+
+**Entire blog:** Settings → Website → Blog → [Blog name] → Restrict to members → select Access Group
+
+**Page group/folder:** apply restriction at the page group level — all pages in the group inherit it automatically
+
+### 5. Personalise content for logged-in contacts
+
+When a contact is logged in, their CRM properties are available via the `contact` variable anywhere in a template or module:
 
 ```html
 {# Check if a contact is logged in #}
 {% if contact %}
-  <p>Welcome back, {{ contact.firstname }}!</p>
+  <p>Welcome back, {{ contact.firstname|escape_html }}!</p>
 
-  {# Access any contact property #}
-  <p>Your account: {{ contact.email }}</p>
-  <p>Company: {{ contact.company }}</p>
-  <p>Lifecycle stage: {{ contact.lifecyclestage }}</p>
+  {# Any contact property by internal name #}
+  <p>Your email: {{ contact.email|escape_html }}</p>
+  <p>Company: {{ contact.company|escape_html }}</p>
+  <p>Lifecycle stage: {{ contact.lifecyclestage|escape_html }}</p>
 
-  {# Access custom contact properties #}
-  <p>Member since: {{ contact.membership_start_date }}</p>
+  {# Custom properties #}
+  <p>Member tier: {{ contact.member_tier|escape_html }}</p>
+
+  <a href="/members/dashboard">Go to your dashboard</a>
+  <a href="{{ site_settings.membershipLogoutUrl }}">Log out</a>
 {% else %}
-  <p><a href="{{ membership.login_url }}">Log in</a> to see your personalized content.</p>
+  <p>
+    <a href="{{ site_settings.membershipLoginUrl }}">Log in</a>
+    to see your personalised content.
+  </p>
 {% endif %}
 ```
 
-**Available `contact` properties** — any property defined on the Contact object in HubSpot is accessible by its internal property name. Common ones:
+**Commonly used `contact` properties:**
 
 | Variable | Property |
 |---|---|
@@ -144,94 +256,115 @@ When a contact is logged in, their CRM data is available via the `contact` varia
 | `contact.lastname` | Last name |
 | `contact.email` | Email address |
 | `contact.company` | Company name |
+| `contact.jobtitle` | Job title |
 | `contact.phone` | Phone number |
 | `contact.lifecyclestage` | Lifecycle stage |
-| `contact.hs_calculated_form_submissions` | Form submission count |
+| `contact.hs_object_id` | Contact's HubSpot record ID |
 
-### 7. Display company and deal data for logged-in contacts
+Any property defined on the Contact object in HubSpot is accessible using its **internal name** (the snake_case identifier shown in Contact property settings).
+
+### 6. Display associated company and deal data
 
 ```html
 {% if contact %}
-  {# Fetch associated company data #}
-  {% set company = crm_associations(contact.hs_object_id, "CONTACT_TO_COMPANY", 1) %}
+  {# Fetch associated company (returns first associated company) #}
+  {% set company = crm_associations(contact.hs_object_id, "CONTACT_TO_COMPANY", 1)|first %}
   {% if company %}
-    <p>Organization: {{ company.name }}</p>
-    <p>Industry: {{ company.industry }}</p>
+    <p>Organisation: {{ company.name|escape_html }}</p>
+    <p>Industry: {{ company.industry|escape_html }}</p>
   {% endif %}
 
-  {# Fetch open deals for the contact #}
+  {# Fetch open deals for this contact #}
   {% set deals = crm_associations(contact.hs_object_id, "CONTACT_TO_DEAL") %}
   {% if deals %}
     <h2>Your Open Opportunities</h2>
     {% for deal in deals %}
       <div class="deal-card">
-        <h3>{{ deal.dealname }}</h3>
-        <p>Stage: {{ deal.dealstage }}</p>
-        <p>Amount: {{ deal.amount | money }}</p>
+        <h3>{{ deal.dealname|escape_html }}</h3>
+        <p>Stage: {{ deal.dealstage|escape_html }}</p>
+        {% if deal.amount %}
+          <p>Value: {{ deal.amount|money }}</p>
+        {% endif %}
       </div>
     {% endfor %}
   {% endif %}
 {% endif %}
 ```
 
-### 8. Logout link
+### 7. Conditional gating within a module
+
+For soft gating — show a teaser to non-members and full content to members — add `{% if contact %}` logic in `module.html`:
 
 ```html
-<a href="{{ membership.logout_url }}">Log out</a>
-```
-
-HubSpot provides `membership.logout_url`, `membership.login_url`, and `membership.registration_url` as built-in variables available on all membership-enabled templates.
-
-### 9. Membership emails
-
-HubSpot automatically sends membership system emails for:
-- Welcome / account confirmation
-- Password reset
-- Access invitation
-
-Customize these at **Settings → Email → System emails → Membership**. Use standard email template format with `{{ contact.firstname }}` personalization tokens.
-
-### 10. Access control for modules
-
-You can conditionally render module content based on membership status:
-
-```html
-{# In module.html — show premium content only to members #}
+{# module.html for a gated resource module #}
 {% if contact %}
-  {{ module.premium_content }}
-  <a href="{{ module.download_url }}">Download Resource</a>
+  <div class="resource resource--unlocked">
+    <h2>{{ module.title }}</h2>
+    {{ module.full_content }}
+    <a href="{{ module.download_url }}" class="btn">Download</a>
+  </div>
 {% else %}
-  <div class="gate-prompt">
+  <div class="resource resource--locked">
+    <h2>{{ module.title }}</h2>
     <p>{{ module.teaser_text }}</p>
-    <a href="{{ membership.login_url }}" class="btn">Log in to access</a>
-    <a href="{{ membership.registration_url }}" class="btn btn--secondary">Register free</a>
+    <a href="{{ site_settings.membershipLoginUrl }}" class="btn">
+      Log in to access
+    </a>
+    {% if site_settings.membershipRegistrationUrl %}
+      <a href="{{ site_settings.membershipRegistrationUrl }}" class="btn btn--secondary">
+        Register free
+      </a>
+    {% endif %}
   </div>
 {% endif %}
 ```
 
+### 8. Membership site settings variables
+
+These are available on any page in a Membership-enabled domain:
+
+| Variable | Value |
+|---|---|
+| `site_settings.membershipLoginUrl` | URL of the login page |
+| `site_settings.membershipLogoutUrl` | URL that logs the user out |
+| `site_settings.membershipRegistrationUrl` | URL of the registration page (if enabled) |
+| `site_settings.membershipWebsiteAdmin` | Admin email address configured in Membership settings |
+
+### 9. Membership system emails
+
+HubSpot automatically sends transactional emails for:
+- Welcome / account confirmation (sent after registration)
+- Password reset (sent after reset request)
+- Invitation (sent when a contact is added to an access list)
+
+Customise at **Settings → Email → System emails → Membership**. Use standard email template format. Available personalisation tokens include `{{ contact.firstname }}`, `{{ contact.email }}`, and the magic login link token.
+
 ## Verification
 
-- Navigating to a gated page while unauthenticated redirects to the login template
-- Logging in with a contact in the access group list grants access
-- `{{ contact.firstname }}` renders the logged-in contact's name on personalized pages
-- Contacts not in the access group list are redirected even after login
-- Logout link clears the session and redirects to the configured logout URL
+- Visiting a gated page while logged out redirects to the login template
+- Logging in with a contact in the access group list grants access to the gated page
+- Logging in with a contact NOT in the access group is rejected (redirected back to login)
+- `{{ contact.firstname }}` renders the logged-in contact's name on personalised pages
+- Logout URL clears the session and redirects to the configured logout redirect
+- Password reset request sends an email to the contact's address
+- Registration template sends a welcome email after successful account creation
 
 ## Failure modes
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| "Membership not available" error | Account not on Content Hub Enterprise | Upgrade subscription or confirm with account admin |
-| Login redirects in a loop | Login page itself is set as restricted | Do not apply membership restriction to the login template page |
-| `contact` variable is null after login | Contact not in any access group list | Add the contact to the list linked to the access group |
-| `{% membership_login_form %}` renders blank | Template type not set to `membership_login` | Set the correct `templateType` annotation and re-upload |
-| Personalization shows wrong data | Contact lookup using old cached session | HubSpot sessions are cookie-based; test in incognito window |
-| Password reset emails not arriving | System email template missing or unconfigured | Check Settings → Email → System emails → Membership |
+| Membership options not in page settings | Account not on Content Hub Enterprise | Verify subscription |
+| Login redirects in an infinite loop | Login page itself is set as restricted | Never restrict the membership system templates |
+| `contact` is null after login | Contact not in any access group list | Add the contact to the list linked to the access group |
+| `{% member_login %}` renders blank | Wrong `templateType` annotation | Template must use `membership_login_page` exactly |
+| `{% member_register %}` not shown | Registration not enabled in Membership settings | Enable self-registration in **Settings → CMS → Membership** |
+| Password reset emails not arriving | System email template not configured | Go to Settings → Email → System emails → Membership |
+| `site_settings.membershipLoginUrl` is empty | Membership not enabled for this domain | Enable Membership and assign the login page in Settings |
 
 ## Escalation
 
-- For gating logic in modules (vs. full pages), add conditional `{% if contact %}` blocks in `module.html`.
-- For complex access rules beyond list membership, consider using contact properties + active lists as access groups.
-- For custom login UIs beyond the standard forms, the `{% membership_login_form %}` tag cannot be replaced with a custom form — escalate to HubSpot support for options.
-- See also: `hubspot-cms-templates` for template type reference, `hubl` for CRM variable syntax.
-- [Membership docs](https://developers.hubspot.com/docs/cms/features/membership)
+- The `{% member_login %}` and related tags cannot be replaced with custom HTML forms — they render HubSpot's authentication forms. No workaround exists for completely custom login UI.
+- For complex access tier logic (e.g. "show different content to Gold vs. Silver members"), use `contact.member_tier` (a custom property) with `{% if %}` branching in templates/modules.
+- For React CMS projects with membership, the `contact` variable is available in HubL templates but not directly in React components — pass it via a module field or read it from a serverless function.
+- See also: `hubspot-cms-templates` (template type reference), `hubl` (CRM variable syntax), `hubspot-cms-membership` system email templates.
+- Reference: [cms-theme-boilerplate membership templates](https://github.com/HubSpot/cms-theme-boilerplate/tree/main/src/templates/system), [Membership docs](https://developers.hubspot.com/docs/cms/features/membership)
