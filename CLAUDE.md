@@ -41,6 +41,7 @@ Push deep reference material into a `references/` subdirectory; keep `SKILL.md` 
 | Skill | Description |
 |---|---|
 | [hubspot-contact-sync](skills/hubspot-contact-sync/) | Sync contacts between HubSpot and an external system via the Contacts API |
+| [hubl](skills/hubl/) | Build HubSpot CMS templates and emails using HubL — template inheritance, modules, HubDB, CRM objects, filters, and email tokens |
 
 ## Contributing
 
