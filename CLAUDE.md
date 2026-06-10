@@ -61,6 +61,12 @@ Push deep reference material into a `references/` subdirectory; keep `SKILL.md` 
 | [hubspot-workflows-api](skills/hubspot-workflows-api/) | Manage automation workflows via the Flows v4 API — read/create/enroll, build custom coded actions in Developer Platform projects, Breeze AI Agent Tools, and Custom Behavioral Events |
 | [hubspot-data-sync](skills/hubspot-data-sync/) | Sync data bidirectionally between HubSpot and external systems — field mapping, conflict resolution, deletion handling, and reliable incremental sync patterns |
 | [hubspot-imports-exports](skills/hubspot-imports-exports/) | Bulk import and export CRM data — Imports API file upload, column mapping, async job polling, error handling, and post-import reconciliation |
+| [hubspot-associations-v4](skills/hubspot-associations-v4/) | Manage CRM associations using the v4 API — labeled/unlabeled types, batch create/read/delete, custom label schemas, and the 250k-per-type limit |
+| [hubspot-custom-objects](skills/hubspot-custom-objects/) | Create and manage custom CRM object types — Schemas API, property definition, display properties, record CRUD, p_* wildcard in UI extensions, Object Definition Pages |
+| [hubspot-properties-api](skills/hubspot-properties-api/) | Manage CRM properties — all field types, property groups, internal vs. label names, unique identifiers, decimal/number display hints |
+| [hubspot-marketing-emails](skills/hubspot-marketing-emails/) | Send marketing and transactional emails — Marketing Email API, Single Send API, token personalization, subscription types, GDPR opt-in, Campaigns API |
+| [hubspot-forms](skills/hubspot-forms/) | Build and integrate HubSpot forms — v3 Forms API, non-HubSpot form submissions, dependent fields, GDPR double opt-in, submission retrieval |
+| [hubspot-landing-pages-api](skills/hubspot-landing-pages-api/) | Manage landing pages via the Pages API — create/clone/publish/schedule, A/B tests, page expiry, and performance metrics |
 
 ## Contributing
 

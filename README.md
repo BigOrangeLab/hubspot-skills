@@ -57,6 +57,12 @@ Then add entries to `~/.claude/settings.json` as above.
 | [hubspot-workflows-api](skills/hubspot-workflows-api/) | Flows v4 API — CRUD, enrollment, custom coded actions, Breeze AI Agent Tools, Custom Behavioral Events | automation/v4, Developer Platform v2025.2 |
 | [hubspot-data-sync](skills/hubspot-data-sync/) | Sync data bidirectionally between HubSpot and external systems — field mapping, conflict resolution, deletion handling, and incremental sync patterns | HubSpot API v3/v4 |
 | [hubspot-imports-exports](skills/hubspot-imports-exports/) | Bulk import and export CRM data — Imports API file upload, column mapping, async job polling, error handling, and post-import reconciliation | HubSpot API v3 |
+| [hubspot-associations-v4](skills/hubspot-associations-v4/) | Manage CRM associations — labeled/unlabeled types, batch create/read/delete, Schema API for custom labels, 250k-per-type limit | HubSpot API crm/v4/associations |
+| [hubspot-custom-objects](skills/hubspot-custom-objects/) | Create custom CRM object types — Schemas API, property definitions, record CRUD, p_* wildcard in UI extensions, Object Definition Pages | Operations Hub Pro+; CRM v3 |
+| [hubspot-properties-api](skills/hubspot-properties-api/) | Manage CRM properties — all field/type combinations, property groups, unique identifiers, decimal display hints (2026) | HubSpot API crm/v3/properties |
+| [hubspot-marketing-emails](skills/hubspot-marketing-emails/) | Marketing and transactional emails — Marketing Email API, Single Send API, token personalization, subscription types, GDPR, Campaigns API | Marketing Hub Starter+; marketing/v3 |
+| [hubspot-forms](skills/hubspot-forms/) | HubSpot forms — Forms API v3, headless submissions, dependent fields, GDPR double opt-in, submission retrieval | HubSpot API marketing/v3/forms |
+| [hubspot-landing-pages-api](skills/hubspot-landing-pages-api/) | Landing pages API — create/clone/publish/schedule, A/B tests, page expiry, performance metrics | Marketing Hub Starter+; cms/v3 |
 
 ## Skill format
 
