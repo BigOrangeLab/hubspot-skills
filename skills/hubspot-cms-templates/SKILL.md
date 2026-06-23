@@ -540,6 +540,39 @@ The boilerplate header partial uses `get_asset_version()` to append a version ha
 
 `get_asset_url()` already handles cache-busting — calling `get_asset_version()` separately is only needed for custom asset URL patterns outside `require_css`/`require_js`.
 
+## Previewing a template after upload
+
+After uploading a template with `hs cms upload`, you can preview it **without creating a page** using the Design Previewer:
+
+```
+https://app.hubspot.com/design-previewer/{portalId}/code/{fileId}
+```
+
+The `fileId` is the Design Manager file's numeric ID. Retrieve it from the source-code API:
+
+```bash
+TOKEN=$(python3 -c "
+import yaml
+with open('~/.hscli/config.yml') as f:
+    cfg = yaml.safe_load(f)
+for a in cfg['accounts']:
+    if a['name'] == 'YOUR_ACCOUNT_NAME':
+        print(a['auth']['tokenInfo']['accessToken'])
+        break
+")
+curl -s "https://api.hubapi.com/cms/v3/source-code/content/YOUR_THEME/templates/pages/YOUR_TEMPLATE.html" \
+  -H "Authorization: Bearer $TOKEN" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('id'))"
+```
+
+Then open:
+```
+https://app.hubspot.com/design-previewer/{portalId}/code/{fileId}
+```
+
+This renders the full template with the theme header/footer inside the Design Manager preview pane. No page creation needed.
+
+> **Do not use** `https://app.hubspot.com/design-manager/{portalId}/edit/...` as a preview — that URL opens the code editor, not the rendered preview.
+
 ## Verification
 
 - Template appears in the template picker when creating a new page (when `isAvailableForNewContent: true`)
