@@ -380,6 +380,37 @@ hs upload ./card.module themes/my-theme/modules/card.module
 hs watch ./my-theme themes/my-theme
 ```
 
+### 12. Upload round-trip: canonical key order (avoiding diff churn)
+
+HubSpot re-serializes `fields.json` and `meta.json` on every upload/fetch into a
+fixed canonical key order (Jackson-style formatting). If you hand-author fields
+in a different order, the next `fetch` rewrites them — noisy diffs with no
+semantic change. Two ways to avoid it:
+
+- **Author minimal, then round-trip.** Write the fields you need, `hs upload`,
+  then `hs fetch` the module back and commit *that*. Simplest, and the fetched
+  form is authoritative.
+- **Author in canonical order up front.** Every field's keys follow:
+
+  `id → name → label → [inline_help_text] → required → locked → [occurrence] → [visibility] → «type-specific» → type → display_width → [default]`
+
+  Type-specific keys slot in before `type`: `text`→`allow_new_line`;
+  `richtext`→`enabled_features`; `choice`→`display, choices, multiple,
+  reordering_enabled, preset`; `number`→`display, min, max, step, suffix`;
+  `boolean`→`display`; `link`→`supported_types, show_advanced_rel_options`;
+  `image`→`responsive, resizable, show_loading`; `font`→`load_external_fonts`;
+  `group`→`children, tab, expanded, group_occurrence_meta`.
+
+HubSpot also injects `locked: false` and `display_width: null` on every field,
+sets each field's `id` to its dotted path (`group.child` for nested fields), and
+expands `visibility` to `{ controlling_field, controlling_field_path,
+controlling_value_regex, property, operator, access }` and `occurrence` to
+`{ min, max, sorting_label_field, default }`.
+
+`meta.json` gains a **server-assigned `module_id`** on first upload — you cannot
+pre-write it, so it always shows up in the first post-upload fetch. Commit it
+then, in a follow-up commit after the one that scaffolds the module.
+
 ## Verification
 
 - Module appears in the **Add** panel for the configured `host_template_types`
