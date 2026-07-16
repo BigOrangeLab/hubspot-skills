@@ -239,8 +239,8 @@ Adding `"tab": "STYLE"` to a group moves it to the **Style tab** in the editor s
 | `text` | Single-line plain text |
 | `richtext` | WYSIWYG HTML; use `enabled_features` to restrict toolbar |
 | `image` | Object with `src`, `alt`, `width`, `height`, `loading`, `size_type` |
-| `video` | HubSpot-hosted or external embed |
-| `link` | Object with `url`, `open_in_new_tab`, `no_follow` |
+| `embed` | External video / media / iframe. `supported_source_types`: `["oembed","html"]` (+ `supported_oembed_types` e.g. `["video","rich"]`). Render the oEmbed/HTML output — see the [oEmbed field docs](https://developers.hubspot.com/docs/cms/building-blocks/module-theme-fields/oembed). **There is no `video` module field type** — `type: "video"` fails upload with `'unknown' is not a valid field type`. |
+| `link` | **Use for any URL/link.** Object with `url` (`{ href, type }`), `open_in_new_tab`, `no_follow`; optional `supported_types` (e.g. `["EXTERNAL","CONTENT","FILE","EMAIL_ADDRESS","BLOG"]`). **There is no `url` module field type** — `type: "url"` fails upload with `'unknown' is not a valid field type`. |
 | `cta` | HubSpot CTA button picker; render with `{{ cta(module.cta_field) }}` |
 | `color` | Object with `color` (hex) and `opacity` (0–100); use `\|convert_rgb` filter |
 | `gradient` | Object with `.css` property — emit directly |
@@ -256,7 +256,6 @@ Adding `"tab": "STYLE"` to a group moves it to the **Style tab** in the editor s
 | `datetime` | Date + time picker |
 | `email` | Email address input |
 | `phone` | Phone number input |
-| `url` | URL input |
 | `icon` | FontAwesome icon picker |
 | `logo` | Site logo picker |
 | `menu` | Navigation menu picker |
@@ -396,6 +395,8 @@ hs watch ./my-theme themes/my-theme
 |---|---|---|
 | Module not in Add panel | `is_available_for_new_content: false` or wrong `host_template_types` | Update `meta.json` and re-upload |
 | Fields not showing | `fields.json` parse error | Validate JSON; check all `type` values are valid strings |
+| Upload fails: `'unknown' is not a valid field type` (often with spurious `missing field name` / `<group>.null is missing a label` alongside) | A field uses a `type` that isn't a real module field type — commonly `video` or `url` | Use `embed` for video/media and `link` for URLs. One bad type triggers all three errors at once, so fix the type before chasing the "missing name/label" noise |
+| Upload fails: `Unknown file type for module file <name>` | A non-module file (e.g. `README.md`, notes, `.DS_Store`) is sitting inside the `.module` directory | A `.module` dir accepts only `meta.json`, `fields.json`, `module.html`, `module.css`, `module.js`, and registered assets. Move other files out, or add the filename to a project-root `.hsignore` (the CLI honors it on upload/watch) |
 | `module.fieldname` is undefined in template | Field `name` mismatch (case-sensitive) | Names in `fields.json` and `module.html` must match exactly |
 | Repeater shows no add/remove controls | Missing or malformed `occurrence` object | Add `"occurrence": { "min": 1 }` to the group |
 | Scoped CSS not applied | Using `<style>` directly instead of `require_css` + `scope_css` | Wrap in `{% require_css %}<style>{% scope_css %}...{% end_scope_css %}</style>{% end_require_css %}` |
