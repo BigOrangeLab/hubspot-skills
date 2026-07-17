@@ -266,7 +266,7 @@ Adding `"tab": "STYLE"` to a group moves it to the **Style tab** in the editor s
 | `hubdbrow` | Single HubDB row picker |
 | `hubdbtable` | HubDB table picker |
 | `crm_object` | CRM record picker |
-| `file` | File attachment from File Manager |
+| `file` | File attachment from File Manager. Value is a **plain URL string**, not an object — no `.url`/`.player_id`/`.thumbnail_url`. Add `"picker": "video"` (sibling of `id`, first key) to restrict the File Manager UI to video files — this is the correct type for a HubSpot-hosted MP4 that doesn't need Marketing-Hub-gated player features (CTAs, analytics); use `embed` instead for external oEmbed video (YouTube/Vimeo) |
 | `group` | Groups other fields; optional `tab: "STYLE"` |
 
 ### 6. Conditional field visibility
@@ -394,6 +394,8 @@ semantic change. Two ways to avoid it:
 
   `id → name → label → [inline_help_text] → required → locked → [occurrence] → [visibility] → «type-specific» → type → display_width → [default]`
 
+  Exception: `file`'s `picker` key comes **before** `id`, not before `type`.
+
   Type-specific keys slot in before `type`: `text`→`allow_new_line`;
   `richtext`→`enabled_features`; `choice`→`display, choices, multiple,
   reordering_enabled, preset`; `number`→`display, min, max, step, suffix`;
@@ -426,7 +428,7 @@ then, in a follow-up commit after the one that scaffolds the module.
 |---|---|---|
 | Module not in Add panel | `is_available_for_new_content: false` or wrong `host_template_types` | Update `meta.json` and re-upload |
 | Fields not showing | `fields.json` parse error | Validate JSON; check all `type` values are valid strings |
-| Upload fails: `'unknown' is not a valid field type` (often with spurious `missing field name` / `<group>.null is missing a label` alongside) | A field uses a `type` that isn't a real module field type — commonly `video` or `url` | Use `embed` for video/media and `link` for URLs. One bad type triggers all three errors at once, so fix the type before chasing the "missing name/label" noise |
+| Upload fails: `'unknown' is not a valid field type` (often with spurious `missing field name` / `<group>.null is missing a label` alongside) | A field uses a `type` that isn't a real module field type — commonly `video` or `url` | Use `link` for URLs. For video: `embed` for external oEmbed (YouTube/Vimeo); `file` + `"picker": "video"` for a HubSpot File Manager-hosted MP4 (returns a plain URL string, not an object). One bad type triggers all three errors at once, so fix the type before chasing the "missing name/label" noise |
 | Upload fails: `Unknown file type for module file <name>` | A non-module file (e.g. `README.md`, notes, `.DS_Store`) is sitting inside the `.module` directory | A `.module` dir accepts only `meta.json`, `fields.json`, `module.html`, `module.css`, `module.js`, and registered assets. Move other files out, or add the filename to a project-root `.hsignore` (the CLI honors it on upload/watch) |
 | `module.fieldname` is undefined in template | Field `name` mismatch (case-sensitive) | Names in `fields.json` and `module.html` must match exactly |
 | Repeater shows no add/remove controls | Missing or malformed `occurrence` object | Add `"occurrence": { "min": 1 }` to the group |
