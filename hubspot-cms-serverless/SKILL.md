@@ -10,7 +10,7 @@ metadata:
     written_against:
         hubspot-cli: "8.15.0"
         content-hub: "Enterprise"
-        nodejs: "v20"
+        nodejs: "v22"
 ---
 
 ## When to use
