@@ -12,7 +12,7 @@ metadata:
         hubspot-developer-platform: "2026.09"
         hubspot-cms-components: "latest"
         content-hub: "Professional+"
-        nodejs: "v20"
+        nodejs: "v22"
 ---
 
 ## When to use
