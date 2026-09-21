@@ -1,14 +1,14 @@
 ---
 name: hubspot-cms-modules
 description: "Create custom HubSpot CMS modules — file structure, all field types, Style tab, repeaters, conditional visibility, global modules, and scoped CSS/JS"
-compatibility: "Content Hub Starter and above; CLI v7+"
+compatibility: "Content Hub Starter and above; CLI v8+"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.1"
-    written: "2026-06-09"
+    version: "1.2"
+    written: "2026-09-21"
     written_against:
-        hubspot-cli: "7.10"
+        hubspot-cli: "8.15.0"
         content-hub: "Starter+"
 ---
 

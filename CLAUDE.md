@@ -42,8 +42,9 @@ Push deep reference material into a `references/` subdirectory; keep `SKILL.md` 
 
 | Skill | Description |
 |---|---|
+| [hubspot-api-versioning](skills/hubspot-api-versioning/) | Date-based API versioning — `/2026-09/` path scheme, v1–v4 end-of-support calendar, legacy→date-based endpoint map, and which API families are still beta-only |
 | [hubspot-public-api](skills/hubspot-public-api/) | Reference for HubSpot's public REST APIs — auth, CRM object pattern, search, batch ops, pagination, rate limits, versioning, and full endpoint catalog |
-| [hubspot-private-apps](skills/hubspot-private-apps/) | Create and use HubSpot Private Apps — non-expiring scoped access tokens, scope selection, token rotation, rate limits, and split-traffic pattern for multiplying throughput |
+| [hubspot-private-apps](skills/hubspot-private-apps/) | Account service keys (current mechanism) and legacy private apps (creation ends Oct 2026) — scope selection, rotation, introspection, rate limits, split-traffic pattern |
 | [hubspot-cli](skills/hubspot-cli/) | Full hs CLI reference — install, auth, account management, CMS upload/watch/fetch, project build/deploy/dev, HubDB, secrets, sandboxes, serverless functions, and hs mcp setup |
 | [hubspot-mcp-server](skills/hubspot-mcp-server/) | Configure and use HubSpot's two MCP servers: Developer MCP (local, CLI-based) and Remote CRM MCP (mcp.hubspot.com) — tools, auth, IDE config for Claude Code, Cursor, VS Code, Windsurf |
 
@@ -52,7 +53,7 @@ Push deep reference material into a `references/` subdirectory; keep `SKILL.md` 
 | Skill | Description |
 |---|---|
 | [hubspot-crm-objects](skills/hubspot-crm-objects/) | CRUD for any CRM object — contacts, companies, deals, tickets, and custom objects — plus batch ops, Search API, pagination, upsert, merge, and 429 handling |
-| [hubspot-associations-v4](skills/hubspot-associations-v4/) | Manage CRM associations using the v4 API — labeled/unlabeled types, batch create/read/delete, custom label schemas, and the 250k-per-type limit |
+| [hubspot-associations](skills/hubspot-associations/) | Manage CRM associations on 2026-09 — labeled/unlabeled types, batch create/read/delete, custom label schemas, the 250k-per-type limit, and v4 migration |
 | [hubspot-custom-objects](skills/hubspot-custom-objects/) | Create and manage custom CRM object types — Schemas API, property definition, display properties, record CRUD, p_* wildcard in UI extensions, Object Definition Pages |
 | [hubspot-properties-api](skills/hubspot-properties-api/) | Manage CRM properties — all field types, property groups, internal vs. label names, unique identifiers, decimal/number display hints |
 
@@ -60,7 +61,7 @@ Push deep reference material into a `references/` subdirectory; keep `SKILL.md` 
 
 | Skill | Description |
 |---|---|
-| [hubspot-contact-sync](skills/hubspot-contact-sync/) | Sync contacts between HubSpot and an external system via the Contacts API |
+| [hubspot-contact-sync](skills/hubspot-contact-sync/) | **Deprecated** — superseded by hubspot-crm-objects, hubspot-data-sync, hubspot-imports-exports |
 | [hubspot-data-sync](skills/hubspot-data-sync/) | Sync data bidirectionally between HubSpot and external systems — field mapping, conflict resolution, deletion handling, and reliable incremental sync patterns |
 | [hubspot-imports-exports](skills/hubspot-imports-exports/) | Bulk import and export CRM data — Imports API file upload, column mapping, async job polling, error handling, and post-import reconciliation |
 | [hubspot-webhooks](skills/hubspot-webhooks/) | Subscribe to and process HubSpot webhooks — configure subscriptions, verify HMAC signatures, handle retries, deduplicate events, and fill coverage gaps with periodic polling |
@@ -78,7 +79,7 @@ Push deep reference material into a `references/` subdirectory; keep `SKILL.md` 
 
 | Skill | Description |
 |---|---|
-| [hubspot-cms-local-dev](skills/hubspot-cms-local-dev/) | Set up and operate the HubSpot local development environment — CLI install, auth, file sync, and preview workflow |
+| [hubspot-cms-local-dev](skills/hubspot-cms-local-dev/) | **Deprecated** — superseded by hubspot-cli and hubspot-cms-themes |
 | [hubspot-cms-themes](skills/hubspot-cms-themes/) | Build and configure HubSpot CMS themes — file structure, fields, drag-and-drop areas, child themes, and CLI workflow |
 | [hubspot-cms-modules](skills/hubspot-cms-modules/) | Create custom HubSpot CMS modules — file structure, all field types, repeaters, global modules, and editor experience |
 | [hubspot-cms-templates](skills/hubspot-cms-templates/) | Author page, blog, email, and system templates in HubL — template types, inheritance, global content, and multi-language |

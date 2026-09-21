@@ -1,14 +1,20 @@
 ---
 name: hubspot-forms
 description: "Build and integrate HubSpot forms — v3 Forms API for CRUD, embed options, non-HubSpot form submissions, dependent fields, GDPR double opt-in, and submission data retrieval"
-compatibility: "All Hub tiers (free); Forms API v3; Forms embed JS v2.9+"
+compatibility: "All Hub tiers (free); Forms API v3 (no GA date-based version yet); Forms embed JS v2.9+"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
-    written: "2026-06-09"
+    version: "1.1"
+    written: "2026-09-21"
     written_against:
         hubspot-api: "marketing/v3/forms"
+---
+
+> **Versioning:** Marketing Forms has **no GA date-based version** as of 2026-09 —
+> only `2026-09-beta`. Stay on `/marketing/v3/forms` for production traffic and
+> re-check before the September 2027 enforcement date. See `hubspot-api-versioning`.
+
 ---
 
 ## When to use
@@ -26,11 +32,11 @@ metadata:
 
 | Input | Source |
 |---|---|
-| Private App token | `hubspot-private-apps` skill |
+| Account service key | `hubspot-private-apps` skill |
 | `portalId` / Hub ID | HubSpot portal settings |
 | `formId` (GUID) | GET `/marketing/v3/forms` or HubSpot Forms UI |
 | Property names for fields | `hubspot-properties-api` skill |
-| Subscription type IDs | GET `/communication-preferences/v3/definitions` |
+| Subscription type IDs | GET `/communication-preferences/2026-09/definitions` |
 
 **Scopes:** `forms`, `forms-uploaded-files` (for file-upload fields)
 
@@ -361,10 +367,10 @@ curl -s -X POST \
 | Submission accepted but no contact created | Email field missing or blank | Ensure `email` field is included and non-empty |
 | `429` on submission endpoint | > 50 submissions/second | Rate limit submissions; use batch imports for bulk loads |
 | Dependent field not showing | `formFieldAction: "DISPLAY"` but field is also in `fieldGroups` | Dependent fields should only appear in `dependentFormField` — not in the top-level `fieldGroups` array |
-| GDPR checkbox rejected | Subscription type ID not found | List subscription types from `/communication-preferences/v3/definitions` |
+| GDPR checkbox rejected | Subscription type ID not found | List subscription types from `/communication-preferences/2026-09/definitions` |
 | Double opt-in email not sent | `type` is `EXPLICIT_CONSENT_WITH_OPT_IN` but portal opt-in not configured | Enable double opt-in in HubSpot portal email settings |
 | `hutk` not associating session | Cookie value stale or from different domain | Only pass `hutk` when the user just loaded the page in the same session |
-| File upload field rejected | Missing `forms-uploaded-files` scope | Add scope to the private app |
+| File upload field rejected | Missing `forms-uploaded-files` scope | Add scope to the service key |
 
 ---
 
@@ -372,7 +378,7 @@ curl -s -X POST \
 
 - Forms API v3: https://developers.hubspot.com/docs/api/marketing/forms
 - Form submission API: https://legacydocs.hubspot.com/docs/methods/forms/submit_form_v3
-- Communication Preferences (subscription types): https://developers.hubspot.com/docs/api/marketing/subscriptions-preferences
+- Communication Preferences (subscription types): https://developers.hubspot.com/docs/guides/api/marketing/subscriptions-preferences
 - For triggering emails after form submission: see `hubspot-marketing-emails` skill
 - For landing pages that contain forms: see `hubspot-landing-pages-api` skill
 - For contact property names: see `hubspot-properties-api` skill

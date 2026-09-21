@@ -1,14 +1,14 @@
 ---
 name: hubspot-marketing-emails
 description: "Send and manage HubSpot marketing and transactional emails — Marketing Email API, Single Send (Transactional) API, email templates, token personalization, subscription types, GDPR opt-in/out, and Campaigns API"
-compatibility: "Marketing Hub Starter+ for marketing emails; Marketing Hub Professional+ or Transactional Email add-on for single-send transactional; CRM v3; Marketing v3 emails and campaigns APIs"
+compatibility: "Marketing Hub Starter+ for marketing emails; Marketing Hub Professional+ or Transactional Email add-on for single-send transactional; Marketing emails, transactional and campaigns APIs on 2026-09"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
-    written: "2026-06-09"
+    version: "1.1"
+    written: "2026-09-21"
     written_against:
-        hubspot-api: "marketing/v3/emails, marketing/v3/transactional, marketing/v3/campaigns"
+        hubspot-api: "2026-09"
 ---
 
 ## When to use
@@ -36,12 +36,12 @@ metadata:
 
 | Input | Source |
 |---|---|
-| Private App access token | `hubspot-private-apps` skill |
+| Account service key | `hubspot-private-apps` skill |
 | Email content or template | HubSpot Design Tools or Marketing Emails UI |
-| `emailId` (for marketing sends) | GET `/marketing/v3/emails` |
+| `emailId` (for marketing sends) | GET `/marketing/emails/2026-09` |
 | `contactEmail` or `contactId` (for single sends) | CRM contact record |
-| Subscription type ID (for single sends) | GET `/communication-preferences/v3/definitions` |
-| Campaign ID (optional) | GET `/marketing/v3/campaigns` |
+| Subscription type ID (for single sends) | GET `/communication-preferences/2026-09/definitions` |
+| Campaign ID (optional) | GET `/marketing/campaigns/2026-09` |
 
 **Scopes required:**
 - Marketing emails: `content`
@@ -59,7 +59,7 @@ metadata:
 ```bash
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/marketing/v3/emails?limit=20&state=DRAFT" \
+  "https://api.hubapi.com/marketing/emails/2026-09?limit=20&state=DRAFT" \
   | jq '[.results[] | {id: .id, name: .name, state: .state, subject: .subject}]'
 ```
 
@@ -70,7 +70,7 @@ curl -s \
 ```bash
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/marketing/v3/emails/$EMAIL_ID?includeStats=true" \
+  "https://api.hubapi.com/marketing/emails/2026-09/$EMAIL_ID?includeStats=true" \
   | jq '{id: .id, subject: .subject, stats: .stats}'
 ```
 
@@ -90,7 +90,7 @@ curl -s -X POST \
       "body": "<h1>Hello {{ contact.firstname }}!</h1><p>Here is your update.</p>"
     }
   }' \
-  "https://api.hubapi.com/marketing/v3/emails"
+  "https://api.hubapi.com/marketing/emails/2026-09"
 ```
 
 **`type` values:** `REGULAR_EMAIL`, `AUTOMATED_EMAIL`, `BLOG_EMAIL`, `RSS_EMAIL`, `OPTIN_EMAIL`, `OPTIN_FOLLOWUP_EMAIL`, `BATCHEMAIL`
@@ -102,7 +102,7 @@ curl -s -X POST \
 The Single Send API is for programmatic 1:1 triggered sends. The recipient must be an existing contact in HubSpot (or will be created on send).
 
 ```
-POST /marketing/v3/transactional/single-email/send
+POST /marketing/transactional/2026-09/single-email/send
 ```
 
 ```json
@@ -180,7 +180,7 @@ Subscription types control what marketing emails a contact opts in or out of.
 ```bash
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/communication-preferences/v3/definitions" \
+  "https://api.hubapi.com/communication-preferences/2026-09/definitions" \
   | jq '[.subscriptionDefinitions[] | {id: .id, name: .name, description: .description}]'
 ```
 
@@ -189,7 +189,7 @@ curl -s \
 ```bash
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/communication-preferences/v3/status/email/alice@example.com" \
+  "https://api.hubapi.com/communication-preferences/2026-09/status/email/alice@example.com" \
   | jq '.subscriptionStatuses'
 ```
 
@@ -205,7 +205,7 @@ curl -s -X POST \
     "legalBasis": "LEGITIMATE_INTEREST_PQL",
     "legalBasisExplanation": "Contact filled out a demo request form"
   }' \
-  "https://api.hubapi.com/communication-preferences/v3/subscribe"
+  "https://api.hubapi.com/communication-preferences/2026-09/subscribe"
 ```
 
 #### Unsubscribe (opt out) a contact
@@ -220,7 +220,7 @@ curl -s -X POST \
     "legalBasis": "CONSENT_WITH_NOTICE",
     "legalBasisExplanation": "Contact clicked unsubscribe link"
   }' \
-  "https://api.hubapi.com/communication-preferences/v3/unsubscribe"
+  "https://api.hubapi.com/communication-preferences/2026-09/unsubscribe"
 ```
 
 **`legalBasis` values for GDPR portals:**
@@ -263,7 +263,7 @@ curl -s -X POST \
       }
     }
   }' \
-  "https://api.hubapi.com/crm/v3/objects/contacts"
+  "https://api.hubapi.com/crm/objects/2026-09/contacts"
 ```
 
 Transactional emails (Single Send API) with `sendResult: SENT` bypass subscription opt-outs by design, but the contact must not have been GDPR-deleted.
@@ -292,7 +292,7 @@ curl -s -X POST \
       }
     }
   }' \
-  "https://api.hubapi.com/marketing/v3/campaigns"
+  "https://api.hubapi.com/marketing/campaigns/2026-09"
 ```
 
 #### List campaigns
@@ -300,7 +300,7 @@ curl -s -X POST \
 ```bash
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/marketing/v3/campaigns?limit=20" \
+  "https://api.hubapi.com/marketing/campaigns/2026-09?limit=20" \
   | jq '[.results[] | {id: .id, name: .name, startDate: .startDate}]'
 ```
 
@@ -314,7 +314,7 @@ curl -s -X POST \
     "assetType": "EMAIL",
     "assetId": "'$EMAIL_ID'"
   }' \
-  "https://api.hubapi.com/marketing/v3/campaigns/$CAMPAIGN_ID/assets"
+  "https://api.hubapi.com/marketing/campaigns/2026-09/$CAMPAIGN_ID/assets"
 ```
 
 `assetType` options: `EMAIL`, `LANDING_PAGE`, `BLOG_POST`, `SOCIAL_POST`, `AD`, `CTA`, `FORM`
@@ -327,7 +327,7 @@ curl -s -X POST \
 # Confirm a marketing email exists
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/marketing/v3/emails/$EMAIL_ID" \
+  "https://api.hubapi.com/marketing/emails/2026-09/$EMAIL_ID" \
   | jq '{id: .id, subject: .subject, state: .state}'
 
 # Test single send to yourself (use your own email address)
@@ -338,13 +338,13 @@ curl -s -X POST \
     \"emailId\": $EMAIL_ID,
     \"message\": { \"to\": \"you@example.com\" }
   }" \
-  "https://api.hubapi.com/marketing/v3/transactional/single-email/send" \
+  "https://api.hubapi.com/marketing/transactional/2026-09/single-email/send" \
   | jq '{sendResult: .sendResult, statusId: .statusId}'
 
 # Check contact subscription status
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/communication-preferences/v3/status/email/you@example.com" \
+  "https://api.hubapi.com/communication-preferences/2026-09/status/email/you@example.com" \
   | jq '[.subscriptionStatuses[] | {name: .name, status: .status}]'
 ```
 
@@ -369,8 +369,8 @@ curl -s \
 ## Escalation
 
 - Marketing Email API: https://developers.hubspot.com/docs/api/marketing/marketing-emails
-- Single Send (Transactional): https://developers.hubspot.com/docs/api/marketing/transactional-email
-- Subscription Types & Preferences: https://developers.hubspot.com/docs/api/marketing/subscriptions-preferences
+- Single Send (Transactional): https://developers.hubspot.com/docs/guides/api/marketing/emails/transactional-emails
+- Subscription Types & Preferences: https://developers.hubspot.com/docs/guides/api/marketing/subscriptions-preferences
 - Campaigns API: https://developers.hubspot.com/docs/api/marketing/campaigns
 - For contact creation with GDPR consent: see `hubspot-crm-objects` skill
 - For landing page management: see `hubspot-landing-pages-api` skill

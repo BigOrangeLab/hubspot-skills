@@ -1,14 +1,14 @@
 ---
 name: hubspot-landing-pages-api
 description: "Manage HubSpot landing pages via the Pages API — create/read/update/delete pages, schedule publishing, clone pages, work with A/B tests, and retrieve page performance metrics"
-compatibility: "Marketing Hub Starter+ for landing pages; Content Hub Core+ for advanced page editing; CMS API v3"
+compatibility: "Marketing Hub Starter+ for landing pages; Content Hub Core+ for advanced page editing; CMS Pages API 2026-09"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
-    written: "2026-06-09"
+    version: "1.1"
+    written: "2026-09-21"
     written_against:
-        hubspot-api: "cms/v3/pages/landing-pages"
+        hubspot-api: "2026-09"
 ---
 
 ## When to use
@@ -28,8 +28,8 @@ Use the HubSpot Design Tools / CMS local dev workflow (`hubspot-cms-local-dev`) 
 
 | Input | Source |
 |---|---|
-| Private App token | `hubspot-private-apps` skill |
-| `pageId` (integer string) | GET `/cms/v3/pages/landing-pages` or HubSpot Pages UI |
+| Account service key | `hubspot-private-apps` skill |
+| `pageId` (integer string) | GET `/cms/pages/2026-09/landing-pages` or HubSpot Pages UI |
 | Template path | HubSpot Design Manager or `hs fetch` |
 | Domain and slug | Portal domain settings |
 
@@ -44,7 +44,7 @@ Use the HubSpot Design Tools / CMS local dev workflow (`hubspot-cms-local-dev`) 
 ```bash
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/cms/v3/pages/landing-pages?limit=20&state=PUBLISHED" \
+  "https://api.hubapi.com/cms/pages/2026-09/landing-pages?limit=20&state=PUBLISHED" \
   | jq '[.results[] | {id: .id, name: .name, slug: .slug, state: .state, url: .url}]'
 ```
 
@@ -68,7 +68,7 @@ curl -s \
 ```bash
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/cms/v3/pages/landing-pages/$PAGE_ID" \
+  "https://api.hubapi.com/cms/pages/2026-09/landing-pages/$PAGE_ID" \
   | jq '{
       id: .id,
       name: .name,
@@ -87,7 +87,7 @@ curl -s \
 ### 3. Create a landing page
 
 ```
-POST /cms/v3/pages/landing-pages
+POST /cms/pages/2026-09/landing-pages
 ```
 
 ```json
@@ -115,7 +115,7 @@ Response (`201 Created`) includes the page `id` and `state: "DRAFT"`.
 ### 4. Update a landing page
 
 ```
-PATCH /cms/v3/pages/landing-pages/{pageId}
+PATCH /cms/pages/2026-09/landing-pages/{pageId}
 ```
 
 Only include the fields you want to change:
@@ -147,13 +147,13 @@ Only include the fields you want to change:
 #### Publish immediately
 
 ```
-POST /cms/v3/pages/landing-pages/{pageId}/draft/push-live
+POST /cms/pages/2026-09/landing-pages/{pageId}/draft/push-live
 ```
 
 ```bash
 curl -s -X POST \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/cms/v3/pages/landing-pages/$PAGE_ID/draft/push-live"
+  "https://api.hubapi.com/cms/pages/2026-09/landing-pages/$PAGE_ID/draft/push-live"
 ```
 
 Response: `204 No Content` on success.
@@ -161,7 +161,7 @@ Response: `204 No Content` on success.
 #### Schedule publish at a future time
 
 ```
-PATCH /cms/v3/pages/landing-pages/{pageId}
+PATCH /cms/pages/2026-09/landing-pages/{pageId}
 ```
 
 ```json
@@ -199,7 +199,7 @@ PATCH /cms/v3/pages/landing-pages/{pageId}
 ### 6. Clone a page
 
 ```
-POST /cms/v3/pages/landing-pages/{pageId}/clone
+POST /cms/pages/2026-09/landing-pages/{pageId}/clone
 ```
 
 ```json
@@ -217,7 +217,7 @@ The cloned page is created in `DRAFT` state. Update its `slug` before publishing
 #### Create an A/B test on a page
 
 ```
-POST /cms/v3/pages/landing-pages/{pageId}/ab-test/create-variant
+POST /cms/pages/2026-09/landing-pages/{pageId}/ab-test/create-variant
 ```
 
 ```json
@@ -232,7 +232,7 @@ HubSpot creates a new variant page cloned from the original. Edit the variant in
 #### End an A/B test and pick a winner
 
 ```
-POST /cms/v3/pages/landing-pages/{pageId}/ab-test/end-test
+POST /cms/pages/2026-09/landing-pages/{pageId}/ab-test/end-test
 ```
 
 ```json
@@ -283,7 +283,7 @@ curl -s -X POST \
 # Archive (soft delete)
 curl -s -X DELETE \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/cms/v3/pages/landing-pages/$PAGE_ID"
+  "https://api.hubapi.com/cms/pages/2026-09/landing-pages/$PAGE_ID"
 ```
 
 Returns `204 No Content`. Archived pages are excluded from default list results. Pass `?state=ARCHIVED` to include them.
@@ -296,13 +296,13 @@ Returns `204 No Content`. Archived pages are excluded from default list results.
 # List 5 most recently updated published pages
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/cms/v3/pages/landing-pages?limit=5&state=PUBLISHED&sort=-updatedAt" \
+  "https://api.hubapi.com/cms/pages/2026-09/landing-pages?limit=5&state=PUBLISHED&sort=-updatedAt" \
   | jq '[.results[] | {id: .id, name: .name, slug: .slug, url: .url}]'
 
 # Get page state after publish
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/cms/v3/pages/landing-pages/$PAGE_ID" \
+  "https://api.hubapi.com/cms/pages/2026-09/landing-pages/$PAGE_ID" \
   | jq '{state: .state, publishDate: .publishDate, url: .url}'
 ```
 
@@ -314,7 +314,7 @@ curl -s \
 |---|---|---|
 | `400 BAD_REQUEST` — slug conflict | Another published page has the same slug | Change the slug to a unique value before publishing |
 | `400 BAD_REQUEST` — template not found | `templatePath` references a template not in the portal | Verify path using `hs fetch --all` or Design Manager |
-| `403 FORBIDDEN` | Token missing `content` scope | Add `content` scope to the private app |
+| `403 FORBIDDEN` | Token missing `content` scope | Add `content` scope to the service key |
 | `404 NOT_FOUND` | Page archived or wrong portal | Check `?state=ARCHIVED`; verify `portalId` and page `id` |
 | `push-live` returns 400 | Page has validation errors (empty required modules) | Open page in page editor and resolve validation warnings first |
 | Scheduled publish doesn't fire | `publishDate` is in the past, or `currentState` not set | Set `publishDate` to a future ISO 8601 timestamp; confirm `currentState: "SCHEDULED_FOR_PUBLISH"` |
@@ -327,7 +327,7 @@ curl -s \
 ## Escalation
 
 - Landing Pages API: https://developers.hubspot.com/docs/api/cms/pages
-- Analytics API v3: https://developers.hubspot.com/docs/api/analytics/analytics-api
+- Analytics API v3: https://developers.hubspot.com/changelog
 - For local template/module editing: see `hubspot-cms-local-dev` and `hubspot-cms-templates` skills
 - For attaching pages to campaigns: see `hubspot-marketing-emails` skill (Campaigns API)
 - For forms embedded in landing pages: see `hubspot-forms` skill

@@ -1,14 +1,14 @@
 ---
 name: hubspot-cms-serverless
 description: "Write and deploy HubSpot CMS serverless functions — two distinct patterns (standalone theme functions vs. project-based app functions), secrets, logging, and calling external APIs"
-compatibility: "Content Hub Enterprise (standalone endpoint functions); Enterprise subscription for project app functions; Node.js v20+; CLI v7+"
+compatibility: "Content Hub Enterprise (standalone endpoint functions); Enterprise subscription for project app functions; Node.js v22+; CLI v8+"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.1"
-    written: "2026-06-09"
+    version: "1.2"
+    written: "2026-09-21"
     written_against:
-        hubspot-cli: "7.10"
+        hubspot-cli: "8.15.0"
         content-hub: "Enterprise"
         nodejs: "v20"
 ---
@@ -33,7 +33,7 @@ This skill covers both. The project-based pattern is the modern default for Reac
 ## Inputs required
 
 - HubSpot account with **Content Hub Enterprise** (standalone) or **Enterprise subscription** (project-based)
-- Node.js v20+ (`node --version`) — v18 is end-of-life for new HubSpot serverless deployments
+- Node.js v22+ (`node --version`) — v18 and v20 are end-of-life for new HubSpot serverless deployments
 - HubSpot CLI installed and authenticated — see `hubspot-cms-local-dev`
 - External API credentials (store as HubSpot secrets, never hard-code)
 
@@ -254,7 +254,7 @@ exports.main = async (context) => {
   const token = process.env.HUBSPOT_TOKEN;
 
   const res = await fetch(
-    `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}?properties=firstname,lastname,email`,
+    `https://api.hubapi.com/crm/objects/2026-09/contacts/${contactId}?properties=firstname,lastname,email`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   const contact = await res.json();
@@ -383,7 +383,7 @@ Never commit secret values. Never read them from `process.argv` or query paramet
 
 ## Escalation
 
-- For calling HubSpot CRM APIs from a function, store a private app access token as a secret and call `https://api.hubapi.com/crm/v3/...` with `Authorization: Bearer <token>`.
+- For calling HubSpot CRM APIs from a function, store an account service key as a secret and call `https://api.hubapi.com/crm/objects/2026-09/...` with `Authorization: Bearer <token>`.
 - For UI extension app functions (in CRM cards, not CMS pages), see `hubspot-ui-extensions`.
 - For React Island components that call serverless functions, see `hubspot-cms-react`.
 - Reference: [cms-react serverless example](https://github.com/HubSpot/cms-react/tree/main/examples/serverless)

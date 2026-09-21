@@ -1,15 +1,21 @@
 ---
 name: hubspot-cms-local-dev
-description: "Set up and operate the HubSpot local development environment — CLI install, auth, file sync, watch, and preview workflow"
-compatibility: "All Content Hub tiers; CLI v7+"
+description: "DEPRECATED — superseded by hubspot-cli (install, auth, upload/watch/fetch) and hubspot-cms-themes (theme structure and workflow)."
+compatibility: "Deprecated 2026-09-21. Documents CLI v7; current CLI is v8.15+."
 license: MIT
 metadata:
     author: georgestephanis
     version: "1.1"
-    written: "2026-06-09"
+    written: "2026-09-21"
+    deprecated: true
     written_against:
         hubspot-cli: "7.10"
 ---
+
+> **Deprecated.** The CLI half of this skill is covered in depth (and for v8) by
+> `hubspot-cli`; the theme/asset half by `hubspot-cms-themes`. The v7 commands
+> below are stale. Use those two skills instead; this file will be removed in a
+> later pass.
 
 ## When to use
 
@@ -21,7 +27,7 @@ Use this skill whenever starting any HubSpot CMS development work locally — it
 
 ## Inputs required
 
-- Node.js v20 or higher (`node --version`)
+- Node.js v22 or higher (`node --version`)
 - A HubSpot account with Content Hub access
 - Your HubSpot **account ID** — visible in any HubSpot URL: `app.hubspot.com/settings/<accountId>/`
 - A **Personal Access Key** — generate at `app.hubspot.com/portal/<accountId>/personal-access-key` (requires "Content" scope at minimum; tick "Design Manager" under CMS access)
@@ -199,7 +205,7 @@ Without this, `hs watch` will try to upload `node_modules/` which will hang or f
 
 ### 11. VS Code extension
 
-Install the [HubSpot VS Code extension](https://marketplace.visualstudio.com/items?itemName=HubSpot.hubl-language-extension) for HubL syntax highlighting, snippet completions, and IntelliSense:
+Install the [HubSpot VS Code extension](https://marketplace.visualstudio.com/items?itemName=HubSpot.hubl) for HubL syntax highlighting, snippet completions, and IntelliSense:
 
 ```bash
 code --install-extension HubSpot.hubl-language-extension
