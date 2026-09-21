@@ -4,11 +4,11 @@ description: "Reference for HubSpot's public REST APIs — authentication (servi
 compatibility: "All HubSpot tiers. Base URL: https://api.hubapi.com. Date-based versioning (2026-09 current GA); legacy v1–v4 unsupported September 2027."
 license: MIT
 metadata:
-    author: georgestephanis
-    version: "1.1"
-    written: "2026-09-21"
-    written_against:
-        hubspot-api: "2026-09"
+  author: georgestephanis
+  version: "1.1"
+  written: "2026-09-21"
+  written_against:
+    hubspot-api: "2026-09"
 ---
 
 ## When to use
@@ -36,12 +36,12 @@ For the full endpoint listing by category see [references/api-catalog.md](refere
 
 ### 1. Choose an auth method
 
-| Method | Header | Best for |
-|---|---|---|
-| Account service key | `Authorization: Bearer <key>` | Internal tools, server-to-server, single portal |
-| OAuth 2.0 access token | `Authorization: Bearer <access_token>` | Multi-portal apps, public integrations |
-| Legacy private app token | `Authorization: Bearer <token>` | Existing integrations only — creation ends October 2026 |
-| API key (legacy) | `?hapikey=<key>` query param | Removed — migrate to a service key |
+| Method                   | Header                                 | Best for                                                |
+| ------------------------ | -------------------------------------- | ------------------------------------------------------- |
+| Account service key      | `Authorization: Bearer <key>`          | Internal tools, server-to-server, single portal         |
+| OAuth 2.0 access token   | `Authorization: Bearer <access_token>` | Multi-portal apps, public integrations                  |
+| Legacy private app token | `Authorization: Bearer <token>`        | Existing integrations only — creation ends October 2026 |
+| API key (legacy)         | `?hapikey=<key>` query param           | Removed — migrate to a service key                      |
 
 **Account service keys** replace private apps for single-portal work: Development →
 Keys → Service keys. Legacy private apps stop being creatable 2026-09-28 (new
@@ -49,6 +49,7 @@ portals) / 2026-10-26 (existing) and are unsupported from September 2027. See
 `hubspot-private-apps`.
 
 **OAuth flow:**
+
 1. Redirect user to `https://app.hubspot.com/oauth/authorize?client_id=…&redirect_uri=…&scope=…`
 2. Exchange `code` for tokens: `POST /oauth/2026-09/token` (form body: `grant_type=authorization_code`)
 3. Refresh: `POST /oauth/2026-09/token` (`grant_type=refresh_token`)
@@ -88,6 +89,7 @@ For custom objects use the object type ID (e.g. `p12345678_MyObject`) returned f
 ### 3. Request / response shapes
 
 **Create / update request body:**
+
 ```json
 {
   "properties": {
@@ -97,13 +99,16 @@ For custom objects use the object type ID (e.g. `p12345678_MyObject`) returned f
   "associations": [
     {
       "to": { "id": "7890" },
-      "types": [{ "associationCategory": "HUBSPOT_DEFINED", "associationTypeId": 279 }]
+      "types": [
+        { "associationCategory": "HUBSPOT_DEFINED", "associationTypeId": 279 }
+      ]
     }
   ]
 }
 ```
 
 **Response object shape:**
+
 ```json
 {
   "id": "12345",
@@ -115,6 +120,7 @@ For custom objects use the object type ID (e.g. `p12345678_MyObject`) returned f
 ```
 
 **Batch read request body:**
+
 ```json
 {
   "inputs": [{ "id": "123" }, { "id": "456" }],
@@ -123,10 +129,15 @@ For custom objects use the object type ID (e.g. `p12345678_MyObject`) returned f
 ```
 
 **Upsert** uses `idProperty` to match on a unique property (e.g. `email`):
+
 ```json
 {
   "inputs": [
-    { "idProperty": "email", "id": "alice@example.com", "properties": { "firstname": "Alice" } }
+    {
+      "idProperty": "email",
+      "id": "alice@example.com",
+      "properties": { "firstname": "Alice" }
+    }
   ]
 }
 ```
@@ -135,15 +146,15 @@ For custom objects use the object type ID (e.g. `p12345678_MyObject`) returned f
 
 ### 4. Query parameters for list / read endpoints
 
-| Param | Description |
-|---|---|
-| `limit` | Max records to return (default 10, max 100) |
-| `after` | Cursor for next page (from `paging.next.after` in response) |
-| `properties` | Comma-separated property names to include |
-| `propertiesWithHistory` | Comma-separated properties to include with value history |
-| `associations` | Comma-separated association types to include |
-| `archived` | `true` to return archived records |
-| `idProperty` | Alternate unique property to use as record identifier |
+| Param                   | Description                                                 |
+| ----------------------- | ----------------------------------------------------------- |
+| `limit`                 | Max records to return (default 10, max 100)                 |
+| `after`                 | Cursor for next page (from `paging.next.after` in response) |
+| `properties`            | Comma-separated property names to include                   |
+| `propertiesWithHistory` | Comma-separated properties to include with value history    |
+| `associations`          | Comma-separated association types to include                |
+| `archived`              | `true` to return archived records                           |
+| `idProperty`            | Alternate unique property to use as record identifier       |
 
 ---
 
@@ -156,8 +167,16 @@ For custom objects use the object type ID (e.g. `p12345678_MyObject`) returned f
   "filterGroups": [
     {
       "filters": [
-        { "propertyName": "lifecyclestage", "operator": "EQ", "value": "customer" },
-        { "propertyName": "createdate", "operator": "GTE", "value": "1700000000000" }
+        {
+          "propertyName": "lifecyclestage",
+          "operator": "EQ",
+          "value": "customer"
+        },
+        {
+          "propertyName": "createdate",
+          "operator": "GTE",
+          "value": "1700000000000"
+        }
       ]
     }
   ],
@@ -180,6 +199,7 @@ Search is limited to 10,000 results total; use `/exports` for full data dumps.
 ### 6. Pagination
 
 List endpoints return a cursor-based `paging` envelope:
+
 ```json
 {
   "results": [...],
@@ -188,6 +208,7 @@ List endpoints return a cursor-based `paging` envelope:
   }
 }
 ```
+
 Pass `after` value in the next request. No `paging.next` means you've reached the end.
 
 ---
@@ -195,16 +216,20 @@ Pass `after` value in the next request. No `paging.next` means you've reached th
 ### 7. Associations
 
 **Create associations:**
+
 ```
 POST /crm/associations/2026-09/{fromObjectType}/{toObjectType}/batch/create
 ```
+
 ```json
 {
   "inputs": [
     {
       "from": { "id": "123" },
       "to": { "id": "456" },
-      "types": [{ "associationCategory": "HUBSPOT_DEFINED", "associationTypeId": 279 }]
+      "types": [
+        { "associationCategory": "HUBSPOT_DEFINED", "associationTypeId": 279 }
+      ]
     }
   ]
 }
@@ -253,11 +278,11 @@ After creating, use the returned `objectTypeId` (e.g. `2-12345678`) as `{objectT
 
 ### 10. Rate limits
 
-| Token type | Requests per 10 seconds | Daily limit |
-|---|---|---|
-| Service key / private app (free) | 100 | 250,000 |
-| Service key / private app (paid) | 150 | 500,000 |
-| OAuth app | 100 / 10s per portal | 250,000 |
+| Token type                       | Requests per 10 seconds | Daily limit |
+| -------------------------------- | ----------------------- | ----------- |
+| Service key / private app (free) | 100                     | 250,000     |
+| Service key / private app (paid) | 150                     | 500,000     |
+| OAuth app                        | 100 / 10s per portal    | 250,000     |
 
 When a `429` is returned, inspect `X-HubSpot-RateLimit-Remaining` and `Retry-After` headers. Back off exponentially.
 
@@ -310,18 +335,18 @@ legacy→date-based endpoint map, and migration procedure.
 
 ## Failure modes
 
-| Status | Cause | Fix |
-|---|---|---|
-| `401 UNAUTHORIZED` | Missing or expired token | Refresh OAuth token; check the service key is active |
-| `403 FORBIDDEN` | Token lacks required scope | Add the scope to the service key or OAuth consent |
-| `404 NOT_FOUND` | Record archived or wrong object type | Check `archived=true`; verify objectType string |
-| `409 CONFLICT` | Duplicate unique property on create | Use upsert (`/batch/upsert`) instead |
-| `422 VALIDATION_ERROR` | Required property missing or invalid value | Check property `fieldType` constraints |
-| `429 TOO_MANY_REQUESTS` | Rate limit hit | Honor `Retry-After`, use batch endpoints, cache reads |
-| `500 INTERNAL_ERROR` | Transient server error | Retry with exponential backoff (up to 3 times) |
-| Pagination returns duplicate records | Clock skew on `updatedAt` filter | Use `after` cursor, not timestamp filters, for full syncs |
-| Search returns max 10,000 results | Search API hard cap | Use `/exports` for full data dumps |
-| Batch upsert creates duplicates | `idProperty` mismatch | Ensure the property is marked as unique in Properties API |
+| Status                               | Cause                                      | Fix                                                       |
+| ------------------------------------ | ------------------------------------------ | --------------------------------------------------------- |
+| `401 UNAUTHORIZED`                   | Missing or expired token                   | Refresh OAuth token; check the service key is active      |
+| `403 FORBIDDEN`                      | Token lacks required scope                 | Add the scope to the service key or OAuth consent         |
+| `404 NOT_FOUND`                      | Record archived or wrong object type       | Check `archived=true`; verify objectType string           |
+| `409 CONFLICT`                       | Duplicate unique property on create        | Use upsert (`/batch/upsert`) instead                      |
+| `422 VALIDATION_ERROR`               | Required property missing or invalid value | Check property `fieldType` constraints                    |
+| `429 TOO_MANY_REQUESTS`              | Rate limit hit                             | Honor `Retry-After`, use batch endpoints, cache reads     |
+| `500 INTERNAL_ERROR`                 | Transient server error                     | Retry with exponential backoff (up to 3 times)            |
+| Pagination returns duplicate records | Clock skew on `updatedAt` filter           | Use `after` cursor, not timestamp filters, for full syncs |
+| Search returns max 10,000 results    | Search API hard cap                        | Use `/exports` for full data dumps                        |
+| Batch upsert creates duplicates      | `idProperty` mismatch                      | Ensure the property is marked as unique in Properties API |
 
 ---
 

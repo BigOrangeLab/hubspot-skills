@@ -4,18 +4,19 @@ description: "Write and deploy HubSpot CMS serverless functions — two distinct
 compatibility: "Content Hub Enterprise (standalone endpoint functions); Enterprise subscription for project app functions; Node.js v22+; CLI v8+"
 license: MIT
 metadata:
-    author: georgestephanis
-    version: "1.2"
-    written: "2026-09-21"
-    written_against:
-        hubspot-cli: "8.15.0"
-        content-hub: "Enterprise"
-        nodejs: "v22"
+  author: georgestephanis
+  version: "1.2"
+  written: "2026-09-21"
+  written_against:
+    hubspot-cli: "8.15.0"
+    content-hub: "Enterprise"
+    nodejs: "v22"
 ---
 
 ## When to use
 
 Use this skill when:
+
 - A CMS page needs to call an external API server-side (weather, inventory, third-party enrichment)
 - Processing form submissions or running server-side business logic from a CMS page
 - A React CMS module needs to hit an API without exposing credentials in the browser
@@ -23,10 +24,10 @@ Use this skill when:
 
 **There are two distinct serverless patterns in HubSpot. Choose based on your project setup:**
 
-| Pattern | Where functions live | URL prefix | Tier |
-|---|---|---|---|
-| **Standalone** (theme/CMS file system) | `*.functions/` directory uploaded via `hs upload` | `/_hcms/api/<endpoint>` | Content Hub Enterprise |
-| **Project-based** (inside an `hsproject.json` project) | `<app>.functions/` inside a project's `src/app/` | `/hs/serverless/<endpoint>` | Enterprise subscription |
+| Pattern                                                | Where functions live                              | URL prefix                  | Tier                    |
+| ------------------------------------------------------ | ------------------------------------------------- | --------------------------- | ----------------------- |
+| **Standalone** (theme/CMS file system)                 | `*.functions/` directory uploaded via `hs upload` | `/_hcms/api/<endpoint>`     | Content Hub Enterprise  |
+| **Project-based** (inside an `hsproject.json` project) | `<app>.functions/` inside a project's `src/app/`  | `/hs/serverless/<endpoint>` | Enterprise subscription |
 
 This skill covers both. The project-based pattern is the modern default for React CMS projects.
 
@@ -53,6 +54,7 @@ hs create function
 ```
 
 Creates:
+
 ```
 my-functions.functions/
 ├── serverless.json     # registers endpoints
@@ -90,12 +92,12 @@ my-functions.functions/
 
 ```js
 // get-weather.js
-const https = require('https');
+const https = require("https");
 
 exports.main = async (context, sendResponse) => {
   const { WEATHER_API_KEY } = process.env;
   const { queryParameters } = context;
-  const city = queryParameters.city || 'London';
+  const city = queryParameters.city || "London";
 
   try {
     const data = await fetchWeather(WEATHER_API_KEY, city);
@@ -104,10 +106,10 @@ exports.main = async (context, sendResponse) => {
       body: JSON.stringify({ city, forecast: data }),
     });
   } catch (err) {
-    console.error('Weather fetch failed:', err.message);
+    console.error("Weather fetch failed:", err.message);
     sendResponse({
       statusCode: 500,
-      body: JSON.stringify({ error: 'Could not fetch weather data' }),
+      body: JSON.stringify({ error: "Could not fetch weather data" }),
     });
   }
 };
@@ -131,22 +133,24 @@ Standalone functions are available at `/_hcms/api/<endpoint-name>`:
 
 ```js
 // In a module's module.js or a <script> block in a template:
-fetch('/_hcms/api/get-weather?city=London')
-  .then(r => r.json())
-  .then(data => {
-    document.getElementById('weather').textContent = data.forecast.summary;
+fetch("/_hcms/api/get-weather?city=London")
+  .then((r) => r.json())
+  .then((data) => {
+    document.getElementById("weather").textContent = data.forecast.summary;
   });
 ```
 
 ```js
 // POST example
-fetch('/_hcms/api/submit-lead', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email: 'user@example.com', source: 'homepage' }),
+fetch("/_hcms/api/submit-lead", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email: "user@example.com", source: "homepage" }),
 })
-  .then(r => r.json())
-  .then(data => { /* handle response */ });
+  .then((r) => r.json())
+  .then((data) => {
+    /* handle response */
+  });
 ```
 
 ### A5. Upload and watch
@@ -255,13 +259,16 @@ exports.main = async (context) => {
 
   const res = await fetch(
     `https://api.hubapi.com/crm/objects/2026-09/contacts/${contactId}?properties=firstname,lastname,email`,
-    { headers: { Authorization: `Bearer ${token}` } }
+    { headers: { Authorization: `Bearer ${token}` } },
   );
   const contact = await res.json();
 
   return {
     statusCode: 200,
-    body: { firstname: contact.properties.firstname, email: contact.properties.email },
+    body: {
+      firstname: contact.properties.firstname,
+      email: contact.properties.email,
+    },
   };
 };
 ```
@@ -272,17 +279,17 @@ Project-based functions are at `/hs/serverless/<endpoint-path>`:
 
 ```jsx
 // MakeServerlessRequestIsland.jsx
-import { useState } from 'react';
+import { useState } from "react";
 
 export default function MakeServerlessRequestIsland() {
   const [results, setResults] = useState([]);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
 
   function handleSubmit(e) {
     e.preventDefault();
     fetch(`/hs/serverless/parrot?message=${encodeURIComponent(message)}`)
-      .then(r => r.json())
-      .then(data => setResults(prev => [...prev, data.message]));
+      .then((r) => r.json())
+      .then((data) => setResults((prev) => [...prev, data.message]));
   }
 
   return (
@@ -290,11 +297,13 @@ export default function MakeServerlessRequestIsland() {
       <input
         type="text"
         value={message}
-        onChange={e => setMessage(e.target.value)}
+        onChange={(e) => setMessage(e.target.value)}
       />
       <button type="submit">Send</button>
       <ul>
-        {results.map((item, i) => <li key={i}>{item}</li>)}
+        {results.map((item, i) => (
+          <li key={i}>{item}</li>
+        ))}
       </ul>
     </form>
   );
@@ -305,19 +314,16 @@ The Island component wraps this in the parent module entry point:
 
 ```jsx
 // index.jsx
-import { Island } from '@hubspot/cms-components';
-import MakeServerlessRequestIsland from './MakeServerlessRequestIsland?island';
+import { Island } from "@hubspot/cms-components";
+import MakeServerlessRequestIsland from "./MakeServerlessRequestIsland?island";
 
 export function Component() {
   return (
-    <Island
-      id="make-serverless-request"
-      module={MakeServerlessRequestIsland}
-    />
+    <Island id="make-serverless-request" module={MakeServerlessRequestIsland} />
   );
 }
 export const fields = [];
-export const meta = { label: 'Serverless Demo' };
+export const meta = { label: "Serverless Demo" };
 ```
 
 ### B6. Deploy the project
@@ -345,6 +351,7 @@ hs secrets delete WEATHER_API_KEY
 ```
 
 Reference in any handler:
+
 ```js
 const apiKey = process.env.WEATHER_API_KEY;
 ```
@@ -353,14 +360,14 @@ Never commit secret values. Never read them from `process.argv` or query paramet
 
 ## Constraints and limits
 
-| Constraint | Limit |
-|---|---|
-| Execution timeout | 10 seconds |
-| Memory | 128 MB |
-| Runtime | `nodejs20.x` only (v18 deprecated Oct 2025) |
-| Log retention | 90 days |
-| Standalone endpoint URL | `/_hcms/api/<endpoint>` |
-| Project function URL | `/hs/serverless/<path>` |
+| Constraint              | Limit                                       |
+| ----------------------- | ------------------------------------------- |
+| Execution timeout       | 10 seconds                                  |
+| Memory                  | 128 MB                                      |
+| Runtime                 | `nodejs20.x` only (v18 deprecated Oct 2025) |
+| Log retention           | 90 days                                     |
+| Standalone endpoint URL | `/_hcms/api/<endpoint>`                     |
+| Project function URL    | `/hs/serverless/<path>`                     |
 
 ## Verification
 
@@ -371,15 +378,15 @@ Never commit secret values. Never read them from `process.argv` or query paramet
 
 ## Failure modes
 
-| Symptom | Likely cause | Fix |
-|---|---|---|
-| 404 on `/_hcms/api/` | Wrong endpoint name or standalone function not uploaded | Check `serverless.json` key matches URL segment; re-upload |
-| 404 on `/hs/serverless/` | Project not deployed or `endpoint.path` mismatch | Run `hs project upload`; check `appFunctions` path in `serverless.json` |
-| 500 with empty body | Unhandled exception in handler | Add `try/catch`; check `hs logs` |
-| 10-second timeout | External API slow or hung | Add `AbortController` timeout to `fetch` calls; cache aggressively |
-| `process.env.MY_SECRET` undefined | Secret not added or wrong name | Run `hs secrets list`; names are case-sensitive |
-| "Enterprise required" error | Account not on Content Hub Enterprise | Confirm subscription tier |
-| `nodejs18.x` deploy rejected | v18 end-of-life | Change `runtime` in `serverless.json` to `nodejs20.x` |
+| Symptom                           | Likely cause                                            | Fix                                                                     |
+| --------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------- |
+| 404 on `/_hcms/api/`              | Wrong endpoint name or standalone function not uploaded | Check `serverless.json` key matches URL segment; re-upload              |
+| 404 on `/hs/serverless/`          | Project not deployed or `endpoint.path` mismatch        | Run `hs project upload`; check `appFunctions` path in `serverless.json` |
+| 500 with empty body               | Unhandled exception in handler                          | Add `try/catch`; check `hs logs`                                        |
+| 10-second timeout                 | External API slow or hung                               | Add `AbortController` timeout to `fetch` calls; cache aggressively      |
+| `process.env.MY_SECRET` undefined | Secret not added or wrong name                          | Run `hs secrets list`; names are case-sensitive                         |
+| "Enterprise required" error       | Account not on Content Hub Enterprise                   | Confirm subscription tier                                               |
+| `nodejs18.x` deploy rejected      | v18 end-of-life                                         | Change `runtime` in `serverless.json` to `nodejs20.x`                   |
 
 ## Escalation
 
