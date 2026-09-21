@@ -4,11 +4,11 @@ description: "Manage HubSpot CRM associations on the 2026-09 API — create labe
 compatibility: "All Hub tiers; CRM associations on 2026-09. The v4 association API is legacy — support ends 2027-03-30."
 license: MIT
 metadata:
-    author: georgestephanis
-    version: "2.0"
-    written: "2026-09-21"
-    written_against:
-        hubspot-api: "2026-09"
+  author: georgestephanis
+  version: "2.0"
+  written: "2026-09-21"
+  written_against:
+    hubspot-api: "2026-09"
 ---
 
 ## When to use
@@ -25,11 +25,11 @@ metadata:
 
 Migrating from v4? Three things move:
 
-| Operation | v4 (legacy) | 2026-09 |
-|---|---|---|
-| Read one record's associations | `GET /crm/v4/associations/{from}/{id}/to/{to}` | `GET /crm/objects/2026-09/{from}/{id}/associations/{to}` |
-| Write/delete a single pair | `PUT` / `DELETE /crm/v4/associations/{from}/{id}/to/{to}/{toId}` | `PUT` / `DELETE /crm/objects/2026-09/{from}/{id}/associations/{to}/{toId}` |
-| List valid types for a pair | `GET /crm/v4/associations/{from}/{to}/types` | `GET /crm/associations/2026-09/{from}/{to}/labels` |
+| Operation                      | v4 (legacy)                                                      | 2026-09                                                                    |
+| ------------------------------ | ---------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Read one record's associations | `GET /crm/v4/associations/{from}/{id}/to/{to}`                   | `GET /crm/objects/2026-09/{from}/{id}/associations/{to}`                   |
+| Write/delete a single pair     | `PUT` / `DELETE /crm/v4/associations/{from}/{id}/to/{to}/{toId}` | `PUT` / `DELETE /crm/objects/2026-09/{from}/{id}/associations/{to}/{toId}` |
+| List valid types for a pair    | `GET /crm/v4/associations/{from}/{to}/types`                     | `GET /crm/associations/2026-09/{from}/{to}/labels`                         |
 
 Single-record reads and single-pair writes move **under the object**; batch
 operations and label management keep an associations prefix with the version slug
@@ -54,26 +54,26 @@ For creating records with associations in the same call, see `hubspot-crm-object
 
 Every association has a category and a typeId:
 
-| `associationCategory` | Meaning |
-|---|---|
-| `HUBSPOT_DEFINED` | Built-in HubSpot association type |
-| `USER_DEFINED` | Custom label created in this portal |
-| `INTEGRATOR_DEFINED` | Custom label created by a connected app |
+| `associationCategory` | Meaning                                 |
+| --------------------- | --------------------------------------- |
+| `HUBSPOT_DEFINED`     | Built-in HubSpot association type       |
+| `USER_DEFINED`        | Custom label created in this portal     |
+| `INTEGRATOR_DEFINED`  | Custom label created by a connected app |
 
 HubSpot-defined types are fixed integers. The most common:
 
-| Pair | Direction | typeId |
-|---|---|---|
-| Contact → Company (primary) | contact → company | 279 |
-| Company → Contact (primary) | company → contact | 280 |
-| Contact → Deal | contact → deal | 4 |
-| Deal → Contact | deal → contact | 3 |
-| Contact → Ticket | contact → ticket | 16 |
-| Ticket → Contact | ticket → contact | 15 |
-| Company → Deal | company → deal | 342 |
-| Deal → Company | deal → company | 5 |
-| Deal → Line Item | deal → line_item | 19 |
-| Line Item → Deal | line_item → deal | 20 |
+| Pair                        | Direction         | typeId |
+| --------------------------- | ----------------- | ------ |
+| Contact → Company (primary) | contact → company | 279    |
+| Company → Contact (primary) | company → contact | 280    |
+| Contact → Deal              | contact → deal    | 4      |
+| Deal → Contact              | deal → contact    | 3      |
+| Contact → Ticket            | contact → ticket  | 16     |
+| Ticket → Contact            | ticket → contact  | 15     |
+| Company → Deal              | company → deal    | 342    |
+| Deal → Company              | deal → company    | 5      |
+| Deal → Line Item            | deal → line_item  | 19     |
+| Line Item → Deal            | line_item → deal  | 20     |
 
 To look up all types for a pair:
 
@@ -165,10 +165,7 @@ POST /crm/associations/2026-09/{fromObjectType}/{toObjectType}/batch/read
 
 ```json
 {
-  "inputs": [
-    { "id": "12345" },
-    { "id": "12346" }
-  ]
+  "inputs": [{ "id": "12345" }, { "id": "12346" }]
 }
 ```
 
@@ -220,10 +217,12 @@ async function getAllAssociations(fromType, fromId, toType, token) {
 
   do {
     const url = new URL(base);
-    url.searchParams.set('limit', '500');
-    if (after) url.searchParams.set('after', after);
+    url.searchParams.set("limit", "500");
+    if (after) url.searchParams.set("after", after);
 
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     const data = await res.json();
     results.push(...(data.results ?? []));
     after = data.paging?.next?.after;
@@ -277,9 +276,7 @@ POST /crm/associations/2026-09/{fromObjectType}/{toObjectType}/batch/archive
 
 ```json
 {
-  "inputs": [
-    { "from": { "id": "12345" }, "to": { "id": "67890" } }
-  ]
+  "inputs": [{ "from": { "id": "12345" }, "to": { "id": "67890" } }]
 }
 ```
 
@@ -366,16 +363,16 @@ curl -s \
 
 ## Failure modes
 
-| Error | Cause | Fix |
-|---|---|---|
-| `400 ASSOCIATIONS_LIMIT_EXCEEDED` | Record has hit 250k associations of that type | Redesign the data model; remove stale associations |
-| `400 INVALID_ASSOCIATION_TYPE` | `typeId` does not exist for this object pair | Fetch valid types from `/crm/associations/2026-09/{from}/{to}/labels` |
-| `403 FORBIDDEN` | Token missing object read/write scope | Add `crm.objects.{type}.read` + `crm.objects.{type}.write` scopes |
-| `404 NOT_FOUND` | One or both object IDs do not exist or are archived | Verify record IDs; check `?archived=true` on the records endpoint |
-| `409 CONFLICT` on label create | Label name already exists for this pair | GET existing labels; reuse the existing typeId |
-| PUT wipes existing labels | PUT replaces the full type set | Read existing types first, then include them all in the PUT body |
-| Batch read missing results | Object has more associations than the page limit | Paginate using `paging.next.after` per result |
-| `ENGAGEMENT` or `EMAIL` object type rejected | Not supported in generic CRM associations | Use the Engagements API to attach engagements to CRM records |
+| Error                                        | Cause                                               | Fix                                                                   |
+| -------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------- |
+| `400 ASSOCIATIONS_LIMIT_EXCEEDED`            | Record has hit 250k associations of that type       | Redesign the data model; remove stale associations                    |
+| `400 INVALID_ASSOCIATION_TYPE`               | `typeId` does not exist for this object pair        | Fetch valid types from `/crm/associations/2026-09/{from}/{to}/labels` |
+| `403 FORBIDDEN`                              | Token missing object read/write scope               | Add `crm.objects.{type}.read` + `crm.objects.{type}.write` scopes     |
+| `404 NOT_FOUND`                              | One or both object IDs do not exist or are archived | Verify record IDs; check `?archived=true` on the records endpoint     |
+| `409 CONFLICT` on label create               | Label name already exists for this pair             | GET existing labels; reuse the existing typeId                        |
+| PUT wipes existing labels                    | PUT replaces the full type set                      | Read existing types first, then include them all in the PUT body      |
+| Batch read missing results                   | Object has more associations than the page limit    | Paginate using `paging.next.after` per result                         |
+| `ENGAGEMENT` or `EMAIL` object type rejected | Not supported in generic CRM associations           | Use the Engagements API to attach engagements to CRM records          |
 
 ---
 

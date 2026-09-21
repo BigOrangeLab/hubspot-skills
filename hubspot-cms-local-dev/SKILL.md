@@ -4,12 +4,12 @@ description: "DEPRECATED — superseded by hubspot-cli (install, auth, upload/wa
 compatibility: "Deprecated 2026-09-21. Documents CLI v7; current CLI is v8.15+."
 license: MIT
 metadata:
-    author: georgestephanis
-    version: "1.1"
-    written: "2026-09-21"
-    deprecated: true
-    written_against:
-        hubspot-cli: "7.10"
+  author: georgestephanis
+  version: "1.1"
+  written: "2026-09-21"
+  deprecated: true
+  written_against:
+    hubspot-cli: "7.10"
 ---
 
 > **Deprecated.** The CLI half of this skill is covered in depth (and for v8) by
@@ -20,6 +20,7 @@ metadata:
 ## When to use
 
 Use this skill whenever starting any HubSpot CMS development work locally — it is the prerequisite for all CMS theme, module, and template skills. Also use when:
+
 - Connecting a new machine to a HubSpot account
 - Switching between or adding multiple HubSpot accounts
 - Setting up CI/CD deployment via GitHub Actions
@@ -42,6 +43,7 @@ hs --version    # expect 7.x
 ```
 
 For projects that pin the CLI as a dev dependency:
+
 ```bash
 npm install --save-dev @hubspot/cli
 # then use: npx hs <command>
@@ -56,6 +58,7 @@ hs init
 ```
 
 Prompts:
+
 1. **Enter a name for this account** — a local alias, e.g. `myco-prod`
 2. **Enter your Personal Access Key** — paste from the URL above
 
@@ -73,10 +76,11 @@ portals:
       tokenInfo:
         accessToken: >-
           xxxxx
-        expiresAt: '2026-06-09T12:00:00.000Z'
+        expiresAt: "2026-06-09T12:00:00.000Z"
 ```
 
 **Add `.gitignore` entry** — the config file contains credentials:
+
 ```
 hubspot.config.yml
 ```
@@ -96,6 +100,7 @@ hs accounts use myco-qa   # switch default for this session
 ```
 
 To set a different default permanently, edit `hubspot.config.yml` and change `defaultPortal`, or:
+
 ```bash
 hs accounts use --set-default myco-qa
 ```
@@ -153,6 +158,7 @@ hs init --config ./hubspot.config.yml
 ```
 
 Or pass `--account` / `--portal` on any command to override:
+
 ```bash
 hs upload ./my-theme themes/my-theme --account myco-staging
 ```
@@ -162,6 +168,7 @@ hs upload ./my-theme themes/my-theme --account myco-staging
 Use the official [HubSpot CMS Deploy Action](https://github.com/HubSpot/hubspot-cms-deploy-action):
 
 **GitHub repository setup:**
+
 - Secret: `HUBSPOT_PERSONAL_ACCESS_KEY`
 - Variable: `HUBSPOT_ACCOUNT_ID`
 
@@ -180,8 +187,8 @@ jobs:
       - name: Deploy to HubSpot
         uses: HubSpot/hubspot-cms-deploy-action@v2.0.1
         with:
-          src_dir: src          # local path in repo
-          dest_dir: themes/my-theme  # destination in Design Manager
+          src_dir: src # local path in repo
+          dest_dir: themes/my-theme # destination in Design Manager
           account_id: ${{ vars.HUBSPOT_ACCOUNT_ID }}
           personal_access_key: ${{ secrets.HUBSPOT_PERSONAL_ACCESS_KEY }}
 ```
@@ -219,7 +226,7 @@ Or search **HubSpot** in the Extensions panel (`⌘⇧X` / `Ctrl⇧X`).
 {
   "files.associations": {
     "*.html": "html-hubl",
-    "*.css":  "css-hubl"
+    "*.css": "css-hubl"
   },
   "editor.suggest.snippetsPreventQuickSuggestions": false,
   "editor.parameterHints.enabled": true
@@ -232,15 +239,15 @@ If the repo contains non-HubL HTML (e.g. a workspace with plain HTML files), sco
 
 ### 12. Design Manager vs. CLI — asset visibility
 
-| Asset type | Design Manager file browser | `hs watch` / `hs upload` | `hs project dev` / `hs project upload` |
-|---|---|---|---|
-| HubL theme files (`.html`, `.css`, `.js`, `*.module/`) | ✅ Visible and editable | ✅ Two-way sync | — |
-| Global partials | ✅ Editable inline | ✅ Syncs on save | — |
-| Serverless functions (standalone `*.functions/`) | ✅ Under "Serverless Functions" | ✅ Uploads with theme | — |
-| React CMS project source (`.tsx`, `.jsx`) | ❌ Not visible | — | ✅ Build + deploy only |
-| React compiled bundles | ❌ Not visible | — | ✅ Deployed as opaque assets |
-| Serverless functions (project-based) | ❌ Not visible | — | ✅ Deploy with project |
-| HubDB tables | ✅ Under Marketing → Files → HubDB | CLI preview only | — |
+| Asset type                                             | Design Manager file browser        | `hs watch` / `hs upload` | `hs project dev` / `hs project upload` |
+| ------------------------------------------------------ | ---------------------------------- | ------------------------ | -------------------------------------- |
+| HubL theme files (`.html`, `.css`, `.js`, `*.module/`) | ✅ Visible and editable            | ✅ Two-way sync          | —                                      |
+| Global partials                                        | ✅ Editable inline                 | ✅ Syncs on save         | —                                      |
+| Serverless functions (standalone `*.functions/`)       | ✅ Under "Serverless Functions"    | ✅ Uploads with theme    | —                                      |
+| React CMS project source (`.tsx`, `.jsx`)              | ❌ Not visible                     | —                        | ✅ Build + deploy only                 |
+| React compiled bundles                                 | ❌ Not visible                     | —                        | ✅ Deployed as opaque assets           |
+| Serverless functions (project-based)                   | ❌ Not visible                     | —                        | ✅ Deploy with project                 |
+| HubDB tables                                           | ✅ Under Marketing → Files → HubDB | CLI preview only         | —                                      |
 
 **Key rule:** React CMS project assets live entirely outside the Design Manager. Use the CLI and project workflow exclusively for those assets.
 
@@ -257,16 +264,16 @@ hs upload ./test-file.html themes/test-file.html   # completes without error
 
 ## Failure modes
 
-| Symptom | Likely cause | Fix |
-|---|---|---|
-| `hs: command not found` | CLI not on `$PATH` after global install | Restart shell; check `npm bin -g` is on PATH |
-| `401 Unauthorized` | Expired or wrong Personal Access Key | Regenerate key; run `hs auth` to update config |
-| `403 Forbidden` on upload | Key lacks Design Manager scope | Regenerate key with Content/Design Manager scope |
-| Config not found | Running `hs` outside a directory with config | Run `hs init` in project root or use `--config` flag |
-| Watch hangs on large upload | `node_modules/` or build output not excluded | Add `.hsignore` |
-| `hslocal.net` cert error | Self-signed cert not trusted by browser | Accept cert once, or open `https://hslocal.net:3000` directly and accept there |
-| Wrong account targeted | Default portal set to wrong account | `hs accounts use <alias>` or pass `--account` |
-| CI deploy fails with auth error | Secret name mismatch | Confirm secret is `HUBSPOT_PERSONAL_ACCESS_KEY` (not `HUBSPOT_ACCESS_KEY`) |
+| Symptom                         | Likely cause                                 | Fix                                                                            |
+| ------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------ |
+| `hs: command not found`         | CLI not on `$PATH` after global install      | Restart shell; check `npm bin -g` is on PATH                                   |
+| `401 Unauthorized`              | Expired or wrong Personal Access Key         | Regenerate key; run `hs auth` to update config                                 |
+| `403 Forbidden` on upload       | Key lacks Design Manager scope               | Regenerate key with Content/Design Manager scope                               |
+| Config not found                | Running `hs` outside a directory with config | Run `hs init` in project root or use `--config` flag                           |
+| Watch hangs on large upload     | `node_modules/` or build output not excluded | Add `.hsignore`                                                                |
+| `hslocal.net` cert error        | Self-signed cert not trusted by browser      | Accept cert once, or open `https://hslocal.net:3000` directly and accept there |
+| Wrong account targeted          | Default portal set to wrong account          | `hs accounts use <alias>` or pass `--account`                                  |
+| CI deploy fails with auth error | Secret name mismatch                         | Confirm secret is `HUBSPOT_PERSONAL_ACCESS_KEY` (not `HUBSPOT_ACCESS_KEY`)     |
 
 ## Escalation
 

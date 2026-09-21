@@ -4,11 +4,11 @@ description: "Manage HubSpot landing pages via the Pages API — create/read/upd
 compatibility: "Marketing Hub Starter+ for landing pages; Content Hub Core+ for advanced page editing; CMS Pages API 2026-09"
 license: MIT
 metadata:
-    author: georgestephanis
-    version: "1.1"
-    written: "2026-09-21"
-    written_against:
-        hubspot-api: "2026-09"
+  author: georgestephanis
+  version: "1.1"
+  written: "2026-09-21"
+  written_against:
+    hubspot-api: "2026-09"
 ---
 
 ## When to use
@@ -26,12 +26,12 @@ Use the HubSpot Design Tools / CMS development workflow (`hubspot-cli` and `hubs
 
 ## Inputs required
 
-| Input | Source |
-|---|---|
-| Account service key | `hubspot-private-apps` skill |
+| Input                     | Source                                                     |
+| ------------------------- | ---------------------------------------------------------- |
+| Account service key       | `hubspot-private-apps` skill                               |
 | `pageId` (integer string) | GET `/cms/pages/2026-09/landing-pages` or HubSpot Pages UI |
-| Template path | HubSpot Design Manager or `hs fetch` |
-| Domain and slug | Portal domain settings |
+| Template path             | HubSpot Design Manager or `hs fetch`                       |
+| Domain and slug           | Portal domain settings                                     |
 
 **Scopes:** `content`
 
@@ -50,16 +50,16 @@ curl -s \
 
 **Query parameters:**
 
-| Parameter | Description |
-|---|---|
-| `limit` | Page size (max 100) |
-| `after` | Cursor for next page |
-| `state` | `DRAFT`, `PUBLISHED`, `SCHEDULED`, `ARCHIVED`, `AUTOMATED` |
-| `sort` | Property to sort by, e.g. `updatedAt` or `-updatedAt` (prefix `-` for descending) |
-| `createdAfter`, `createdBefore` | ISO 8601 timestamps |
-| `updatedAfter`, `updatedBefore` | ISO 8601 timestamps |
-| `campaign` | Campaign ID to filter pages attached to a campaign |
-| `slug` | Filter by URL slug (exact match) |
+| Parameter                       | Description                                                                       |
+| ------------------------------- | --------------------------------------------------------------------------------- |
+| `limit`                         | Page size (max 100)                                                               |
+| `after`                         | Cursor for next page                                                              |
+| `state`                         | `DRAFT`, `PUBLISHED`, `SCHEDULED`, `ARCHIVED`, `AUTOMATED`                        |
+| `sort`                          | Property to sort by, e.g. `updatedAt` or `-updatedAt` (prefix `-` for descending) |
+| `createdAfter`, `createdBefore` | ISO 8601 timestamps                                                               |
+| `updatedAfter`, `updatedBefore` | ISO 8601 timestamps                                                               |
+| `campaign`                      | Campaign ID to filter pages attached to a campaign                                |
+| `slug`                          | Filter by URL slug (exact match)                                                  |
 
 ---
 
@@ -310,17 +310,17 @@ curl -s \
 
 ## Failure modes
 
-| Error | Cause | Fix |
-|---|---|---|
-| `400 BAD_REQUEST` — slug conflict | Another published page has the same slug | Change the slug to a unique value before publishing |
-| `400 BAD_REQUEST` — template not found | `templatePath` references a template not in the portal | Verify path using `hs fetch --all` or Design Manager |
-| `403 FORBIDDEN` | Token missing `content` scope | Add `content` scope to the service key |
-| `404 NOT_FOUND` | Page archived or wrong portal | Check `?state=ARCHIVED`; verify `portalId` and page `id` |
-| `push-live` returns 400 | Page has validation errors (empty required modules) | Open page in page editor and resolve validation warnings first |
-| Scheduled publish doesn't fire | `publishDate` is in the past, or `currentState` not set | Set `publishDate` to a future ISO 8601 timestamp; confirm `currentState: "SCHEDULED_FOR_PUBLISH"` |
-| Clone creates duplicate slug | Clone has same slug as original | After cloning, PATCH the new page with a unique `slug` before publishing |
-| A/B variant not visible | Variant is still in DRAFT | Publish the variant via `push-live` before traffic split takes effect |
-| Analytics data missing | Page published less than 24 hours ago | Analytics data has a ~24-hour processing delay |
+| Error                                  | Cause                                                   | Fix                                                                                               |
+| -------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `400 BAD_REQUEST` — slug conflict      | Another published page has the same slug                | Change the slug to a unique value before publishing                                               |
+| `400 BAD_REQUEST` — template not found | `templatePath` references a template not in the portal  | Verify path using `hs fetch --all` or Design Manager                                              |
+| `403 FORBIDDEN`                        | Token missing `content` scope                           | Add `content` scope to the service key                                                            |
+| `404 NOT_FOUND`                        | Page archived or wrong portal                           | Check `?state=ARCHIVED`; verify `portalId` and page `id`                                          |
+| `push-live` returns 400                | Page has validation errors (empty required modules)     | Open page in page editor and resolve validation warnings first                                    |
+| Scheduled publish doesn't fire         | `publishDate` is in the past, or `currentState` not set | Set `publishDate` to a future ISO 8601 timestamp; confirm `currentState: "SCHEDULED_FOR_PUBLISH"` |
+| Clone creates duplicate slug           | Clone has same slug as original                         | After cloning, PATCH the new page with a unique `slug` before publishing                          |
+| A/B variant not visible                | Variant is still in DRAFT                               | Publish the variant via `push-live` before traffic split takes effect                             |
+| Analytics data missing                 | Page published less than 24 hours ago                   | Analytics data has a ~24-hour processing delay                                                    |
 
 ---
 
