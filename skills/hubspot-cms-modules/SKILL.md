@@ -24,7 +24,7 @@ A **module** is the atomic unit of drag-and-drop content. Every block an editor 
 
 ## Inputs required
 
-- HubSpot CLI installed and authenticated — see `hubspot-cms-local-dev`
+- HubSpot CLI installed and authenticated — see `hubspot-cli`
 - A theme directory to place the module in — see `hubspot-cms-themes`
 - Module purpose: what it renders and what editors should be able to configure
 

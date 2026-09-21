@@ -25,7 +25,7 @@ For React-based themes (JSX instead of HubL), see `hubspot-cms-react`.
 
 ## Inputs required
 
-- HubSpot CLI installed and authenticated — see `hubspot-cms-local-dev`
+- HubSpot CLI installed and authenticated — see `hubspot-cli`
 - Content Hub account (Starter or higher)
 - Brand assets: colours (hex), fonts, logo
 - List of page types needed (home, interior, blog, landing page, etc.)

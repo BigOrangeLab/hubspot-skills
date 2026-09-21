@@ -20,7 +20,7 @@ metadata:
 - Managing A/B test variants on existing landing pages
 - Listing all landing pages for a portal for auditing or migration
 
-Use the HubSpot Design Tools / CMS local dev workflow (`hubspot-cms-local-dev`) for actual template and module editing. This skill covers API-level page management only.
+Use the HubSpot Design Tools / CMS development workflow (`hubspot-cli` and `hubspot-cms-themes`) for actual template and module editing. This skill covers API-level page management only.
 
 ---
 
@@ -328,7 +328,7 @@ curl -s \
 
 - Landing Pages API: https://developers.hubspot.com/docs/api/cms/pages
 - Analytics API v3: https://developers.hubspot.com/changelog
-- For local template/module editing: see `hubspot-cms-local-dev` and `hubspot-cms-templates` skills
+- For local template/module editing: see `hubspot-cli` and `hubspot-cms-templates` skills
 - For attaching pages to campaigns: see `hubspot-marketing-emails` skill (Campaigns API)
 - For forms embedded in landing pages: see `hubspot-forms` skill
 - For HubDB-driven dynamic pages: see `hubspot-hubdb` skill

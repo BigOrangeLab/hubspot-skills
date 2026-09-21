@@ -331,5 +331,5 @@ legacy→date-based endpoint map, and migration procedure.
 - Developer changelog: https://developers.hubspot.com/changelog
 - OpenAPI spec source: `/tmp/HubSpot-public-api-spec-collection/PublicApiSpecs/` (local clone)
 - Full endpoint catalog: [references/api-catalog.md](references/api-catalog.md)
-- For contact sync workflows, see the `hubspot-contact-sync` skill
+- For CRM data sync workflows, see the `hubspot-crm-objects`, `hubspot-data-sync`, or `hubspot-imports-exports` skills
 - For HubDB and CMS templates, see the `hubl` skill

@@ -26,7 +26,7 @@ For React-based templates (JSX instead of HubL), see `hubspot-cms-react`.
 
 ## Inputs required
 
-- HubSpot CLI installed and authenticated — see `hubspot-cms-local-dev`
+- HubSpot CLI installed and authenticated — see `hubspot-cli`
 - A theme with a base layout already in place — see `hubspot-cms-themes`
 - Knowledge of HubL syntax — see `hubl`
 

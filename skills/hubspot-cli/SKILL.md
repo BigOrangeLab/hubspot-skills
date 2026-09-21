@@ -23,7 +23,7 @@ metadata:
 - Running diagnostics (`hs doctor`)
 - Setting up the Developer MCP server in an agentic IDE (`hs mcp setup`)
 
-For CMS local dev workflow context, see the `hubspot-cms-local-dev` skill.
+For CMS theme development and structure, see the `hubspot-cms-themes` skill.
 For MCP server tools reference, see the `hubspot-mcp-server` skill.
 
 ---
@@ -440,5 +440,5 @@ For a project build:
 - GitHub: https://github.com/HubSpot/hubspot-cli
 - v8 migration guide: https://developers.hubspot.com/docs/developer-tooling/local-development/hubspot-cli
 - For MCP server setup: see `hubspot-mcp-server` skill
-- For CMS local dev workflow: see `hubspot-cms-local-dev` skill
+- For CMS theme development: see `hubspot-cms-themes` skill
 - For project/app builds: see `hubspot-cms-react` skill

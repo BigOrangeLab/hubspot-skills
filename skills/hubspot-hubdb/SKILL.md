@@ -26,7 +26,7 @@ HubDB is **not** available on Content Hub Starter — it requires Professional o
 ## Inputs required
 
 - HubSpot account with Content Hub Professional or Enterprise
-- HubSpot CLI installed and authenticated — see `hubspot-cms-local-dev`
+- HubSpot CLI installed and authenticated — see `hubspot-cli`
 - Table design: column names, types, which column is the page/row label
 - Decision: **dynamic pages** (CMS generates one page per row automatically) vs. **query-only** (use `hubdb_table_rows()` in an existing template)
 
