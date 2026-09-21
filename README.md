@@ -9,7 +9,7 @@ A shared repository of AI agent skills for working with HubSpot — CRM, Marketi
 Add this repo as a submodule inside your project's `.claude/skills/` directory:
 
 ```bash
-git submodule add https://github.com/bigorangelab/hubspot-skills .claude/skills/hubspot
+git submodule add https://github.com/BigOrangeLab/hubspot-skills .claude/skills/hubspot
 ```
 
 Then reference the skills you want in your project's `.claude/settings.json`:
@@ -27,7 +27,7 @@ Then reference the skills you want in your project's `.claude/settings.json`:
 To make skills available in all your projects, clone to `~/.claude/skills/`:
 
 ```bash
-git clone https://github.com/bigorangelab/hubspot-skills ~/.claude/skills/hubspot
+git clone https://github.com/BigOrangeLab/hubspot-skills ~/.claude/skills/hubspot
 ```
 
 Then add entries to `~/.claude/settings.json` as above.
