@@ -208,7 +208,7 @@ Without this, `hs watch` will try to upload `node_modules/` which will hang or f
 Install the [HubSpot VS Code extension](https://marketplace.visualstudio.com/items?itemName=HubSpot.hubl) for HubL syntax highlighting, snippet completions, and IntelliSense:
 
 ```bash
-code --install-extension HubSpot.hubl-language-extension
+code --install-extension HubSpot.hubl
 ```
 
 Or search **HubSpot** in the Extensions panel (`⌘⇧X` / `Ctrl⇧X`).
