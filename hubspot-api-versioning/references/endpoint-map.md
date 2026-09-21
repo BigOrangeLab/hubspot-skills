@@ -10,8 +10,8 @@ Always confirm the full path against the spec repo before shipping.
 
 | API family | Legacy prefix | 2026-09 prefix |
 |---|---|---|
-| Account / Account Info | `/account-info/2026-09` | `/account-info/2026-09` |
-| Account / Audit Logs | `/account-info/2026-09` | `/account-info/2026-09` |
+| Account / Account Info | `/account-info/v3` | `/account-info/2026-09` |
+| Account / Audit Logs | `/account-info/v3` | `/account-info/2026-09` |
 | Auth / Oauth | `/oauth/v1`, `/oauth/v3` | `/oauth/2026-09` |
 | Automation / Actions V4 | `/automation/v4` | `/automation/actions/2026-09`, `/automation/actions/callbacks/2026-09` |
 | Automation / Email Templates | — | `/automation/email-templates/2026-09` |
@@ -98,14 +98,14 @@ Always confirm the full path against the spec repo before shipping.
 | Commerce / Payment Links | — | `/commerce/payment-links/2026-09` |
 | Commerce / Paymentsaccounts | — | `/commerce/payment-accounts/2026-09` |
 | Commerce / Price Books | — | `/commerce/price-books/2026-09` |
-| Communication Preferences / Subscriptions | `/communication-preferences/2026-09`, `/communication-preferences/v4` | `/communication-preferences/2026-09` |
+| Communication Preferences / Subscriptions | `/communication-preferences/v3`, `/communication-preferences/v4` | `/communication-preferences/2026-09` |
 | Conversations / Conversations | `/conversations/conversations/v3`, `/conversations/v3` | `/conversations/conversations/2026-09` |
 | Conversations / Custom Channels | `/conversations/custom-channels/v3`, `/conversations/v3` | `/conversations/custom-channels/2026-09` |
 | Conversations / Visitor Identification | `/visitor-identification/v3` | `/visitor-identification/2026-09` |
 | Data Studio / Datasource Ingestion | — | `/data-studio/data-source/2026-09` |
-| Events / Events | `/events/2026-09` | `/events/event-occurrences/2026-09` |
-| Events / Manage Event Definitions | `/events/2026-09` | `/events/2026-09` |
-| Events / Send Event Completions | `/events/2026-09` | `/events/2026-09` |
+| Events / Events | `/events/v3` | `/events/event-occurrences/2026-09` |
+| Events / Manage Event Definitions | `/events/v3` | `/events/2026-09` |
+| Events / Send Event Completions | `/events/v3` | `/events/2026-09` |
 | Files / Files | `/files/v3` | `/files/2026-09` |
 | Marketing / Campaigns Public Api | `/marketing/v3` | `/marketing/campaigns/2026-09` |
 | Marketing / Marketing Emails | `/marketing/v3` | `/marketing/emails/2026-09` |
@@ -118,7 +118,7 @@ Always confirm the full path against the spec repo before shipping.
 | Settings / Tax Rates | `/tax-rates/v1` | `/tax-rates/2026-09` |
 | Settings / Teams | — | `/settings/teams/2026-09` |
 | Settings / User Provisioning | `/settings/users/v3`, `/settings/v3` | `/settings/users/2026-09` |
-| Webhooks / Webhooks | `/app-webhooks/2026-09` | `/app-webhooks/2026-09`, `/webhooks-journal/journal-local/2026-09`, `/webhooks-journal/journal/2026-09`, `/webhooks-journal/snapshots/2026-09`, `/webhooks-journal/subscriptions/2026-09` |
+| Webhooks / Webhooks | `/webhooks/v3` | `/app-webhooks/2026-09`, `/webhooks-journal/journal-local/2026-09`, `/webhooks-journal/journal/2026-09`, `/webhooks-journal/snapshots/2026-09`, `/webhooks-journal/subscriptions/2026-09` |
 | Webhooks Journal / Webhooks Journal | — | `/webhooks-journal/journal-local/2026-09`, `/webhooks-journal/journal/2026-09`, `/webhooks-journal/snapshots/2026-09`, `/webhooks-journal/subscriptions/2026-09` |
 
 ## Families with NO GA date-based version yet (stay on legacy)
@@ -127,9 +127,7 @@ These have only beta date-based specs. Keep using the legacy path in production.
 
 | API family | Legacy prefix | Beta prefix (do not use in production) |
 |---|---|---|
-| Account / Test Child Api | `/account-info/2026-09` | — |
 | Automation / Automation V4 | `/automation/v4` | `/automation/2026-09-beta` |
-| CRM / Bucket_Test111 | `/crm/v3` | — |
 | CRM / Payments | `/crm/v3` | — |
 | CRM / Subscription Lifecycle | `/payments-subscriptions/v1` | `/payments-subscriptions/2026-09-beta` |
 | Commerce / Contracts | — | `/commerce/contracts/2026-09-beta` |
