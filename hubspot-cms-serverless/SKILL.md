@@ -34,7 +34,7 @@ This skill covers both. The project-based pattern is the modern default for Reac
 ## Inputs required
 
 - HubSpot account with **Content Hub Enterprise** (standalone) or **Enterprise subscription** (project-based)
-- Node.js v22+ (`node --version`) — v18 and v20 are end-of-life for new HubSpot serverless deployments
+- Node.js v22+ locally (`node --version`) — required by the CLI and Developer Platform tooling; the *deployed* function runtime is separately pinned to `nodejs20.x` (see `serverless.json`)
 - HubSpot CLI installed and authenticated — see `hubspot-cli`
 - External API credentials (store as HubSpot secrets, never hard-code)
 
