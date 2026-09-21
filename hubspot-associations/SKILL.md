@@ -326,7 +326,7 @@ DELETE /crm/associations/2026-09/{fromObjectType}/{toObjectType}/labels/{associa
 
 ### 8. Unlabeled associations
 
-An unlabeled association uses a HUBSPOT_DEFINED typeId but carries no display label. These are the legacy v3 association types. They still work in v4:
+An unlabeled association uses a HUBSPOT_DEFINED typeId but carries no display label. These are the legacy v3 association types. They still work in 2026-09:
 
 ```json
 {
@@ -375,13 +375,13 @@ curl -s \
 | `409 CONFLICT` on label create | Label name already exists for this pair | GET existing labels; reuse the existing typeId |
 | PUT wipes existing labels | PUT replaces the full type set | Read existing types first, then include them all in the PUT body |
 | Batch read missing results | Object has more associations than the page limit | Paginate using `paging.next.after` per result |
-| `ENGAGEMENT` or `EMAIL` object type rejected | Not supported in generic v4 associations | Use the Engagements API to attach engagements to CRM records |
+| `ENGAGEMENT` or `EMAIL` object type rejected | Not supported in generic CRM associations | Use the Engagements API to attach engagements to CRM records |
 
 ---
 
 ## Escalation
 
-- Associations v4 reference: https://developers.hubspot.com/docs/api/crm/associations
+- Associations reference: https://developers.hubspot.com/docs/api/crm/associations
 - Association Schema API (labels): https://developers.hubspot.com/docs/guides/api/crm/associations/associations-v4
 - For CRM record CRUD: see `hubspot-crm-objects` skill
 - For custom object type definitions: see `hubspot-custom-objects` skill
