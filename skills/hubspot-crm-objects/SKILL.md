@@ -436,7 +436,7 @@ Include associations when creating a record to link it in one call:
 | Deal → Line Item | 19 |
 | Ticket → Contact | 15 |
 
-For a complete list: `GET /crm/v4/associations/{fromObjectType}/{toObjectType}/types`
+For a complete list: `GET /crm/associations/2026-09/{fromObjectType}/{toObjectType}/labels`
 
 ---
 
@@ -526,4 +526,4 @@ Expected: 200 with `results` array for list; 201 with `id` for create.
 - Exports API (for >10k records): https://developers.hubspot.com/docs/guides/api/crm/exports
 - For auth setup: see `hubspot-private-apps` skill
 - For associations: see `hubspot-associations` skill
-- For custom object schemas: see `hubspot-custom-objects` skill (to be built)
+- For custom object schemas: see `hubspot-custom-objects` skill
