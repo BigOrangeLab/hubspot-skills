@@ -4,7 +4,29 @@ A shared repository of AI agent skills for working with HubSpot — CRM, Marketi
 
 ## Installation
 
-### Claude Code (project-level)
+### Using the `skills` CLI (recommended)
+
+[`skills`](https://github.com/vercel-labs/skills) installs agent skills into Claude Code, Cursor, Codex, and other agents. Requires Node.js v22.20.0+.
+
+```bash
+# Pick skills interactively
+npx skills add BigOrangeLab/hubspot-skills
+
+# See what is available first
+npx skills add BigOrangeLab/hubspot-skills --list
+
+# Install specific skills
+npx skills add BigOrangeLab/hubspot-skills --skill hubspot-crm-objects --skill hubspot-cli
+
+# Install everything, user-level, for Claude Code, without prompts
+npx skills add BigOrangeLab/hubspot-skills --skill '*' -g -a claude-code -y
+```
+
+Skills install per-project by default; `-g` installs to your user directory so they are available everywhere. Files are symlinked — pass `--copy` to copy them instead.
+
+Start with `hubspot-api-versioning`, `hubspot-public-api`, and `hubspot-private-apps` if you only want a few — the rest build on them.
+
+### Manual (git)
 
 Add this repo as a submodule inside your project's `.claude/skills/` directory:
 
@@ -12,23 +34,19 @@ Add this repo as a submodule inside your project's `.claude/skills/` directory:
 git submodule add https://github.com/BigOrangeLab/hubspot-skills .claude/skills/hubspot
 ```
 
-Then reference the skills you want in your project's `.claude/settings.json`:
+Or clone to `~/.claude/skills/` to make the skills available in all your projects:
+
+```bash
+git clone https://github.com/BigOrangeLab/hubspot-skills ~/.claude/skills/hubspot
+```
+
+Then reference the skills you want in your `.claude/settings.json`:
 
 ```json
 {
   "skills": [".claude/skills/hubspot/skills/hubspot-crm-objects"]
 }
 ```
-
-### Claude Code (user-level)
-
-To make skills available in all your projects, clone to `~/.claude/skills/`:
-
-```bash
-git clone https://github.com/BigOrangeLab/hubspot-skills ~/.claude/skills/hubspot
-```
-
-Then add entries to `~/.claude/settings.json` as above.
 
 ## Skills
 
