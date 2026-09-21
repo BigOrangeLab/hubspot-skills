@@ -1,14 +1,14 @@
 ---
 name: hubspot-webhooks
 description: "Configure and consume HubSpot v3 Webhooks API — subscriptions, payload handling, HMAC signature verification, retry/dedup, and hybrid polling patterns"
-compatibility: "Requires a Public App (OAuth); v3 Webhooks API; HubSpot CRM contacts/companies/deals/tickets/products/line_items/conversations; v4 Journal API in beta"
+compatibility: "Requires a public app (OAuth); App Webhooks API 2026-09; HubSpot CRM contacts/companies/deals/tickets/products/line_items/conversations"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
-    written: "2026-06-09"
+    version: "1.1"
+    written: "2026-09-21"
     written_against:
-        hubspot-api: "v3 webhooks"
+        hubspot-api: "2026-09"
 ---
 
 ## When to use
@@ -64,9 +64,9 @@ Webhooks require a Public App (OAuth). Private apps cannot be configured via the
 ### 2. Configure the webhook target URL and throttle
 
 ```bash
-# PUT /webhooks/v3/{appId}/settings
+# PUT /app-webhooks/2026-09/{appId}/settings
 curl --request PUT \
-  --url "https://api.hubapi.com/webhooks/v3/{appId}/settings" \
+  --url "https://api.hubapi.com/app-webhooks/2026-09/{appId}/settings" \
   --header "Authorization: Bearer {developerApiKey}" \
   --header "Content-Type: application/json" \
   --data '{
@@ -87,7 +87,7 @@ To read current settings:
 
 ```bash
 curl --request GET \
-  --url "https://api.hubapi.com/webhooks/v3/{appId}/settings" \
+  --url "https://api.hubapi.com/app-webhooks/2026-09/{appId}/settings" \
   --header "Authorization: Bearer {developerApiKey}"
 ```
 
@@ -127,7 +127,7 @@ curl --request GET \
 ```bash
 # Simple creation event
 curl --request POST \
-  --url "https://api.hubapi.com/webhooks/v3/{appId}/subscriptions" \
+  --url "https://api.hubapi.com/app-webhooks/2026-09/{appId}/subscriptions" \
   --header "Authorization: Bearer {developerApiKey}" \
   --header "Content-Type: application/json" \
   --data '{
@@ -137,7 +137,7 @@ curl --request POST \
 
 # Property change — requires propertyName
 curl --request POST \
-  --url "https://api.hubapi.com/webhooks/v3/{appId}/subscriptions" \
+  --url "https://api.hubapi.com/app-webhooks/2026-09/{appId}/subscriptions" \
   --header "Authorization: Bearer {developerApiKey}" \
   --header "Content-Type: application/json" \
   --data '{
@@ -152,7 +152,7 @@ curl --request POST \
 
 ```bash
 curl --request PATCH \
-  --url "https://api.hubapi.com/webhooks/v3/{appId}/subscriptions/{subscriptionId}" \
+  --url "https://api.hubapi.com/app-webhooks/2026-09/{appId}/subscriptions/{subscriptionId}" \
   --header "Authorization: Bearer {developerApiKey}" \
   --header "Content-Type: application/json" \
   --data '{ "active": true }'
@@ -162,12 +162,12 @@ curl --request PATCH \
 
 ```bash
 # List all subscriptions for the app
-curl "https://api.hubapi.com/webhooks/v3/{appId}/subscriptions" \
+curl "https://api.hubapi.com/app-webhooks/2026-09/{appId}/subscriptions" \
   --header "Authorization: Bearer {developerApiKey}"
 
 # Delete a subscription
 curl --request DELETE \
-  "https://api.hubapi.com/webhooks/v3/{appId}/subscriptions/{subscriptionId}" \
+  "https://api.hubapi.com/app-webhooks/2026-09/{appId}/subscriptions/{subscriptionId}" \
   --header "Authorization: Bearer {developerApiKey}"
 ```
 
@@ -175,7 +175,7 @@ curl --request DELETE \
 
 ```bash
 curl --request POST \
-  --url "https://api.hubapi.com/webhooks/v3/{appId}/subscriptions/batch/update" \
+  --url "https://api.hubapi.com/app-webhooks/2026-09/{appId}/subscriptions/batch/update" \
   --header "Authorization: Bearer {developerApiKey}" \
   --header "Content-Type: application/json" \
   --data '{
@@ -413,14 +413,14 @@ After setup, confirm correct operation with these checks:
 
 1. **Settings endpoint returns your target URL:**
    ```bash
-   curl "https://api.hubapi.com/webhooks/v3/{appId}/settings" \
+   curl "https://api.hubapi.com/app-webhooks/2026-09/{appId}/settings" \
      --header "Authorization: Bearer {developerApiKey}"
    ```
    Response should include `"targetUrl": "https://your-domain.example.com/webhooks/hubspot"`.
 
 2. **Subscription list is non-empty and shows `active: true`:**
    ```bash
-   curl "https://api.hubapi.com/webhooks/v3/{appId}/subscriptions" \
+   curl "https://api.hubapi.com/app-webhooks/2026-09/{appId}/subscriptions" \
      --header "Authorization: Bearer {developerApiKey}"
    ```
 
@@ -463,7 +463,7 @@ Escalate to a human developer or HubSpot support in these situations:
 - **Persistent signature failures** after verifying raw body capture, proxy headers, and Base64 encoding — your infrastructure may be transparently modifying requests.
 - **Events consistently missing** for a specific object type after confirming the subscription is active and the event type is supported.
 - **Webhook delivery fully stalled** for over 30 minutes — check the [HubSpot Status page](https://status.hubspot.com/) for platform incidents.
-- **High event volume exceeding your endpoint capacity** — explore moving to the **v4 Webhooks Journal API** (poll-based), which offers replay up to 3 days and higher reliability under load. See: [Webhooks Journal API docs](https://developers.hubspot.com/docs/api-reference/webhooks-journal-v4/guide).
+- **High event volume exceeding your endpoint capacity** — explore moving to the **v4 Webhooks Journal API** (poll-based), which offers replay up to 3 days and higher reliability under load. See: [Webhooks Journal API docs](https://developers.hubspot.com/docs/guides/api/app-management/webhooks).
 - **Need historical backfill** beyond what webhooks provide — the v4 Journal API can replay up to 3 days of events; older data requires a full CRM export via the Contacts/Companies/Deals APIs.
 - **Custom object association webhooks** on v3 not firing reliably — migrate to v4 subscriptions which have explicit `ASSOCIATION` subscription type support.
 - **Spring 2026 batched reads or list membership subscriptions needed** — these are only available in the v4 Journal API. See: [Spring 2026 Spotlight](https://developers.hubspot.com/changelog/spring-2026-spotlight).

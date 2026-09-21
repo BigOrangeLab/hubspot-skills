@@ -1,14 +1,14 @@
 ---
 name: hubspot-imports-exports
 description: "Bulk import and export CRM data via HubSpot's Imports and Exports APIs — file upload, column mapping, async job polling, deduplication, and reconciliation after import"
-compatibility: "HubSpot API v3; Imports API /crm/v3/imports/; Exports API /crm/v3/exports/; requires Private App or OAuth access token with crm.objects.*.write and crm.export scope"
+compatibility: "HubSpot API 2026-09; Imports API /crm/imports/2026-09/; Exports API /crm/exports/2026-09/; requires a service key or OAuth access token with crm.objects.*.write and crm.export scopes"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
-    written: "2026-06-09"
+    version: "1.1"
+    written: "2026-09-21"
     written_against:
-        hubspot-api: "v3"
+        hubspot-api: "2026-09"
 ---
 
 ## When to use
@@ -34,7 +34,7 @@ Use this skill for **bulk, one-time or scheduled batch operations** on CRM data:
 
 | Input | Description | Notes |
 |---|---|---|
-| `accessToken` | Private App or OAuth access token | Needs `crm.objects.contacts.write` (or equivalent) scope |
+| `accessToken` | Account service key or OAuth access token | Needs `crm.objects.contacts.write` (or equivalent) scope |
 | `importFile` | CSV or spreadsheet file with records to import | UTF-8, max 512 MB, max 1,048,576 rows |
 | `importName` | Human-readable label for the import job | Shown in HubSpot import history |
 | `objectType` | CRM object to import into: `CONTACT`, `COMPANY`, `DEAL`, `TICKET`, or custom object type ID | |
@@ -45,7 +45,7 @@ Use this skill for **bulk, one-time or scheduled batch operations** on CRM data:
 
 | Input | Description | Notes |
 |---|---|---|
-| `accessToken` | Private App or OAuth access token | Needs `crm.export` scope |
+| `accessToken` | Account service key or OAuth access token | Needs `crm.export` scope |
 | `objectType` | CRM object type to export | |
 | `exportFormat` | `CSV` or `XLSX` | |
 | `propertiesToExport` | Array of HubSpot property internal names | Optional; defaults to all properties |
@@ -164,7 +164,7 @@ async function startImport(filePath, importName, columnMappings) {
     contentType: 'text/csv',
   });
 
-  const response = await fetch('https://api.hubapi.com/crm/v3/imports/', {
+  const response = await fetch('https://api.hubapi.com/crm/imports/2026-09/', {
     method:  'POST',
     headers: {
       Authorization: `Bearer ${process.env.HS_ACCESS_TOKEN}`,
@@ -186,7 +186,7 @@ async function startImport(filePath, importName, columnMappings) {
 
 #### 4. Poll for import completion
 
-Imports are asynchronous. Poll `/crm/v3/imports/{importId}` until `state` is terminal:
+Imports are asynchronous. Poll `/crm/imports/2026-09/{importId}` until `state` is terminal:
 
 | `state` | Meaning |
 |---|---|
@@ -204,7 +204,7 @@ async function pollImport(importId, pollIntervalMs = 5000, timeoutMs = 600000) {
 
   while (Date.now() < deadline) {
     const response = await fetch(
-      `https://api.hubapi.com/crm/v3/imports/${importId}`,
+      `https://api.hubapi.com/crm/imports/2026-09/${importId}`,
       { headers: { Authorization: `Bearer ${process.env.HS_ACCESS_TOKEN}` } }
     );
     const data = await response.json();
@@ -241,7 +241,7 @@ When `state === 'DONE'` but `PROPERTY_UPDATES_FAILED > 0`, download the error fi
 ```js
 async function getImportErrors(importId) {
   const response = await fetch(
-    `https://api.hubapi.com/crm/v3/imports/${importId}/errors`,
+    `https://api.hubapi.com/crm/imports/2026-09/${importId}/errors`,
     { headers: { Authorization: `Bearer ${process.env.HS_ACCESS_TOKEN}` } }
   );
   const data = await response.json();
@@ -266,7 +266,7 @@ Typical fix loop: correct the source data for failed rows, create a new CSV with
 ```js
 async function cancelImport(importId) {
   const response = await fetch(
-    `https://api.hubapi.com/crm/v3/imports/${importId}/cancel`,
+    `https://api.hubapi.com/crm/imports/2026-09/${importId}/cancel`,
     {
       method:  'POST',
       headers: { Authorization: `Bearer ${process.env.HS_ACCESS_TOKEN}` },
@@ -332,7 +332,7 @@ async function startExport(objectType, format, propertiesToExport, filters = [])
     }),
   };
 
-  const response = await fetch('https://api.hubapi.com/crm/v3/exports/export/async', {
+  const response = await fetch('https://api.hubapi.com/crm/exports/2026-09/export/async', {
     method:  'POST',
     headers: {
       Authorization:  `Bearer ${process.env.HS_ACCESS_TOKEN}`,
@@ -355,7 +355,7 @@ async function pollExport(taskId, pollIntervalMs = 5000, timeoutMs = 900000) {
 
   while (Date.now() < deadline) {
     const response = await fetch(
-      `https://api.hubapi.com/crm/v3/exports/export/async/tasks/${taskId}/status`,
+      `https://api.hubapi.com/crm/exports/2026-09/export/async/tasks/${taskId}/status`,
       { headers: { Authorization: `Bearer ${process.env.HS_ACCESS_TOKEN}` } }
     );
     const data = await response.json();
@@ -404,7 +404,7 @@ async function downloadExport(downloadUrl, outputPath) {
 
 ### Import verification
 
-1. **Job reached `DONE` state** — confirm via `GET /crm/v3/imports/{importId}`.
+1. **Job reached `DONE` state** — confirm via `GET /crm/imports/2026-09/{importId}`.
 2. **Error count is zero or within tolerance** — `PROPERTY_UPDATES_FAILED === 0` (or known acceptable rows).
 3. **Spot-check records** — search for 5–10 emails from your CSV and confirm properties match.
 4. **New record count makes sense** — `NEW_OBJECT_COUNT + UPDATED_OBJECT_COUNT` should equal `TOTAL_ROWS - error rows`.
@@ -426,14 +426,14 @@ async function downloadExport(downloadUrl, outputPath) {
 | `PROPERTY_UPDATES_FAILED > 0` | Invalid values in some rows | Download errors via `/errors` endpoint; fix those rows and re-import |
 | `INVALID_EMAIL` errors on contacts | Malformed email addresses in CSV | Validate email format client-side before import; `[HS_NULL]` to clear bad emails |
 | Duplicate records created despite `idColumnType: 'EMAIL'` | Email column has whitespace or case difference | Normalize emails (trim, lowercase) in CSV before upload |
-| Import appears to succeed but records not found in HubSpot | Import created records in the wrong portal | Confirm `accessToken` is scoped to the correct portal (`GET /oauth/v1/access-tokens/{token}` returns `hub_id`) |
+| Import appears to succeed but records not found in HubSpot | Import created records in the wrong portal | Confirm `accessToken` is scoped to the correct portal (`POST /oauth/2026-09/token/introspect` returns `hub_id`) |
 | Workflows not triggering for imported contacts | Bulk imports do not trigger workflow enrollment | Manually enroll via Automation Enrollments API after import (Step 7) |
 | Webhooks not firing for imported records | Bulk imports bypass webhook dispatch by design | Run post-import reconciliation against the Search API (Step 7) |
 | `413 Request Entity Too Large` | File exceeds 512 MB | Split into multiple files; compress to reduce size; consider streaming import via the API |
 | Export download URL expired | Pre-signed URLs expire after ~15 min | Re-request the export; download immediately after `COMPLETE` status |
 | Export returns 0 rows despite records existing | Filters too restrictive or wrong `objectType` | Test filter with the Search API first; confirm `objectType` matches (`CONTACT` not `contact`) |
-| `403 Forbidden` on import | Token lacks `crm.objects.*.write` scope | Regenerate Private App token with the required scope |
-| `403 Forbidden` on export | Token lacks `crm.export` scope | Add `crm.export` scope to the Private App |
+| `403 Forbidden` on import | Token lacks `crm.objects.*.write` scope | Rotate the service key with the required scope |
+| `403 Forbidden` on export | Token lacks `crm.export` scope | Add `crm.export` scope to the service key |
 | Import column mapping rejected | `columnObjectTypeId` or `idColumnType` value is wrong | Check object type ID table in Step 2; validate JSON structure against the API schema |
 | Re-import creates duplicates instead of updating | `idColumnType` not set on the dedup column | Add `idColumnType` to the email/domain/ID column in `columnMappings` |
 

@@ -1,14 +1,14 @@
 ---
 name: hubspot-data-sync
 description: "Sync data bidirectionally between HubSpot and external systems — field mapping, conflict resolution, deletion handling, and reliable incremental sync patterns"
-compatibility: "HubSpot API v3/v4; Operations Hub Data Sync (native connectors); CRM Search API; Webhooks v3; Works with Private Apps and OAuth Public Apps"
+compatibility: "HubSpot API 2026-09; Operations Hub Data Sync (native connectors); CRM Search API; App Webhooks 2026-09; works with service keys and OAuth public apps"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
-    written: "2026-06-09"
+    version: "1.1"
+    written: "2026-09-21"
     written_against:
-        hubspot-api: "v3 / v4"
+        hubspot-api: "2026-09"
 ---
 
 ## When to use
@@ -33,8 +33,8 @@ This skill covers building a custom sync layer using HubSpot's REST APIs. For na
 
 | Input | Description | Where to find it |
 |---|---|---|
-| `accessToken` | Private App token or OAuth access token | HubSpot → Settings → Integrations → Private Apps |
-| `portalId` | Hub ID of the target portal | Portal URL or `GET /oauth/v1/access-tokens/{token}` |
+| `accessToken` | Account service key or OAuth access token | HubSpot → Development → Keys → Service keys |
+| `portalId` | Hub ID of the target portal | Portal URL or `POST /oauth/2026-09/token/introspect` |
 | `objectType` | CRM object type to sync: `contacts`, `companies`, `deals`, `tickets`, or custom object type ID | HubSpot CRM schema |
 | `fieldMap` | Mapping of HubSpot property internal names → external system field names | Your schema documentation |
 | `conflictStrategy` | Which side wins on concurrent update: `hubspot-wins`, `external-wins`, `last-write-wins`, or `manual` | Product decision |
@@ -272,7 +272,7 @@ async function resolveConflict(hsRecord, externalRecord, idMap) {
 
 ### 6. Handle deletions and archiving
 
-HubSpot uses soft deletion (archiving). When a record is deleted via the UI or `DELETE /crm/v3/objects/{objectType}/{id}`, it is archived — not permanently removed.
+HubSpot uses soft deletion (archiving). When a record is deleted via the UI or `DELETE /crm/objects/2026-09/{objectType}/{id}`, it is archived — not permanently removed.
 
 **Detecting archived records:**
 
@@ -285,7 +285,7 @@ Archived records are excluded from Search API results by default. To detect dele
 // Option B: Periodic check — list archived records added since last sync
 async function detectDeletions(objectType, lastSyncMs) {
   const response = await fetch(
-    `https://api.hubapi.com/crm/v3/objects/${objectType}` +
+    `https://api.hubapi.com/crm/objects/2026-09/${objectType}` +
     `?archived=true&limit=100&properties=lastmodifieddate`,
     { headers: { Authorization: `Bearer ${process.env.HS_ACCESS_TOKEN}` } }
   );

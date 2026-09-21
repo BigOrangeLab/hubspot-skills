@@ -1,15 +1,16 @@
 ---
 name: hubspot-mcp-server
 description: "Configure and use HubSpot's two MCP servers: the Developer MCP (local, CLI-based) for building apps and CMS assets, and the Remote CRM MCP (mcp.hubspot.com) for reading and writing CRM data from agentic IDEs. Covers setup, tools, auth, and client config for Claude Code, Cursor, VS Code, and Windsurf."
-compatibility: "Developer MCP: CLI v8.2.0+ (GA); Remote CRM MCP: generally available. Both require a HubSpot account."
+compatibility: "Developer MCP: CLI v8.15.0+ (GA); Remote CRM MCP: generally available. Both require a HubSpot account."
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
-    written: "2026-06-09"
+    version: "2.0"
+    written: "2026-09-21"
     written_against:
-        hubspot-cli: "8.2.0"
-        remote-crm-mcp: "GA (June 2025)"
+        hubspot-cli: "8.15.0"
+        hubspot-api: "2026-09"
+        remote-crm-mcp: "GA"
 ---
 
 ## When to use
@@ -27,7 +28,7 @@ metadata:
 ## Inputs required
 
 **Developer MCP:**
-- HubSpot CLI v8.2.0+ installed (`npm install -g @hubspot/cli`)
+- HubSpot CLI v8.15.0+ installed (`npm install -g @hubspot/cli`)
 - CLI authenticated with a Personal Access Key (`hs account auth`)
 - An agentic IDE with MCP support (Claude Code, Cursor, VS Code, Windsurf)
 
@@ -51,7 +52,7 @@ Requires **Developer Platform v2025.2** or higher for schema-related tools.
 ### Setup: `hs mcp setup`
 
 ```bash
-npm install -g @hubspot/cli   # Must be v8.2.0+
+npm install -g @hubspot/cli   # Must be v8.15.0+
 hs account auth               # Authenticate if not already done
 hs mcp setup                  # Interactive: detects installed IDEs and writes config
 ```
@@ -123,7 +124,7 @@ By default the server uses the account linked to the current directory (`hs acco
 | `validate-project` | Validates project config files (`app-hsmeta.json`, etc.) locally without uploading. Returns confirmation or a list of errors/warnings. Run this before `upload-project`. |
 | `upload-project` | Builds and uploads a local project to HubSpot (creates it remotely if absent). **Destructive — only invoke on explicit user request.** Returns build ID and initial build status. |
 | `deploy-project` | Deploys the most recent uploaded build to the account. Returns deployment status and deployment ID. |
-| `get-feature-schema` | Returns the JSON schema for a feature's `-hsmeta.json` config file. **Always call before editing any `-hsmeta.json`.** Requires platform version 2025.2+. |
+| `get-feature-schema` | Returns the JSON schema for a feature's `-hsmeta.json` config file. **Always call before editing any `-hsmeta.json`.** Requires platform version 2025.2+ (use 2026.09 for new projects). |
 | `get-build-status` | Retrieves build status and error messages for a project. Omit `buildId` for the most recent builds; provide it for detailed errors on a specific build. |
 | `get-build-logs` | Retrieves full pipeline logs for a specific build. Use after `get-build-status` to investigate failures needing more detail. |
 | `create-test-account` | Creates a new developer test account linked to the current portal. |
@@ -206,9 +207,25 @@ The Remote CRM MCP uses **OAuth 2.0** via a HubSpot Public App:
 - `search_contacts_by_email` — Look up contacts by email address
 - `get_contact_history` — Retrieve engagement history for a contact (calls, emails, meetings, notes)
 
-**Marketing content:**
-- `list_marketing_emails` — List marketing email campaigns
-- `get_marketing_email` — Get a single marketing email by ID
+**Marketing and content:**
+- `list_marketing_emails` / `get_marketing_email` — Marketing email campaigns
+- `list_campaigns` / `get_campaign` — Campaigns and their associated assets
+- `list_landing_pages` / `get_landing_page` — Landing pages
+
+**Commerce:**
+- `list_quotes` / `get_quote` — Quotes and their line items
+
+**Conversations:**
+- `list_threads` / `get_thread` — Inbox threads and messages
+
+Coverage as of 2026-09 also includes **custom objects** (pass the `p_*` fully
+qualified name or object type ID to the generic `*_crm_object` tools), **leads**,
+and **configuration writes** — creating properties and editing pipeline stages.
+Those last two mutate portal-wide schema, not a single record: confirm with the
+account owner before letting an agent run them unattended.
+
+Tool names drift between releases. Call `tools/list` (or your client's tool
+listing) at session start rather than hardcoding the list above.
 
 ---
 
@@ -301,11 +318,27 @@ If you have the CLI installed and authenticated, `hs mcp setup` can configure th
 
 ---
 
+## Shipping your own MCP server in an app
+
+Developer Platform **2026.09** adds an MCP Server component to apps: you declare
+it in the project like any other component, and HubSpot hosts the endpoint and
+handles auth with the installing portal's credentials. Agents connected to that
+portal then see your tools alongside HubSpot's.
+
+Use it when you want an agent to reach *your* backend with HubSpot context
+already attached. If all you need is HubSpot's own data, the Remote CRM MCP
+already covers it — do not wrap it.
+
+Requires `"platformVersion": "2026.09"`. Public beta as of 2026-09; confirm
+availability before committing a roadmap to it.
+
+---
+
 ## Known limitations
 
 ### Developer MCP
 
-- Requires CLI v8.2.0+ installed and on PATH accessible to the IDE process
+- Requires CLI v8.15.0+ installed and on PATH accessible to the IDE process
 - `upload-project` and `deploy-project` are **irreversible** — always validate first
 - `get-feature-schema` requires Developer Platform v2025.2+; fails on older project configs
 - `create-test-account` is limited by account sandbox quotas
@@ -328,7 +361,7 @@ If you have the CLI installed and authenticated, `hs mcp setup` can configure th
 **Developer MCP:**
 
 ```bash
-hs --version                # Confirm v8.2.0+
+hs --version                # Confirm v8.15.0+
 hs account current          # Confirm correct account is active
 hs mcp setup --list-ides    # List IDEs that hs mcp setup detected
 ```
@@ -348,7 +381,7 @@ In the IDE, open the MCP server list and confirm `hubspot` appears as connected.
 | Error | Cause | Fix |
 |---|---|---|
 | MCP server not found / not connecting (Developer) | `hs` not on PATH for IDE process | Use absolute path in `command` field; check with `which hs` |
-| `Developer Platform v2025.2 required` | `get-feature-schema` called on older project | Update `hsproject.json` platform version or use v2025.2 template |
+| `Developer Platform v2025.2 required` | `get-feature-schema` called on older project | Set `"platformVersion": "2026.09"` in `hsproject.json` (2023.2 sunset 2025-10-01, 2025.1 sunset 2026-08-01) |
 | `upload-project` creates wrong account | Wrong account linked to directory | Run `hs account current` and `hs account default` before agent session |
 | OAuth flow never completes (Remote) | Redirect URI not registered in app | Add `http://localhost:6274/oauth/callback` to the app's allowed redirect URIs |
 | `403` on CRM tool calls | Token missing required scope | Edit the Public App and add needed scopes; reauthorize |

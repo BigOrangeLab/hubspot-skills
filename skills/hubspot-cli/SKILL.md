@@ -1,14 +1,14 @@
 ---
 name: hubspot-cli
 description: "Reference skill for the HubSpot CLI (hs / @hubspot/cli) — install, auth, account management, CMS upload/watch/fetch, project build/deploy/dev, HubDB, secrets, sandboxes, serverless functions, and the hs mcp setup command"
-compatibility: "All Hub tiers; CLI v8.x (current GA). CLI v8.0 dropped legacy commands removed October 2025 / February 2026."
+compatibility: "All Hub tiers; CLI v8.x (8.15.0 current as of 2026-09-21). CLI v8.0 dropped legacy commands removed October 2025 / February 2026."
 license: MIT
 metadata:
-    author: georgestephanis
-    version: "1.0"
-    written: "2026-06-09"
-    written_against:
-        hubspot-cli: "8.x (npm @hubspot/cli)"
+  author: georgestephanis
+  version: "1.1"
+  written: "2026-09-21"
+  written_against:
+    hubspot-cli: "8.15.0"
 ---
 
 ## When to use
@@ -23,14 +23,14 @@ metadata:
 - Running diagnostics (`hs doctor`)
 - Setting up the Developer MCP server in an agentic IDE (`hs mcp setup`)
 
-For CMS local dev workflow context, see the `hubspot-cms-local-dev` skill.
+For CMS theme development and structure, see the `hubspot-cms-themes` skill.
 For MCP server tools reference, see the `hubspot-mcp-server` skill.
 
 ---
 
 ## Inputs required
 
-- Node.js v20 or higher
+- Node.js v22 or higher (required by Developer Platform 2025.2+)
 - HubSpot account with appropriate access (portal ID + Personal Access Key)
 - `npm` or `npx` available in PATH
 
@@ -129,13 +129,13 @@ hs move   <remote-src> <remote-dest>  # Move files in Design Manager
 
 **Key flags:**
 
-| Flag | Description |
-|---|---|
-| `--overwrite` | Allow `hs fetch` to overwrite existing local files |
-| `--remove` | `hs watch`: delete remote file when local file is deleted |
-| `--use-env` | Use `HUBSPOT_PORTAL_ID` + `HUBSPOT_PERSONAL_ACCESS_KEY` env vars instead of config |
-| `--account=<name>` | Target a specific account |
-| `--debug` | Print verbose request/response detail |
+| Flag               | Description                                                                        |
+| ------------------ | ---------------------------------------------------------------------------------- |
+| `--overwrite`      | Allow `hs fetch` to overwrite existing local files                                 |
+| `--remove`         | `hs watch`: delete remote file when local file is deleted                          |
+| `--use-env`        | Use `HUBSPOT_PORTAL_ID` + `HUBSPOT_PERSONAL_ACCESS_KEY` env vars instead of config |
+| `--account=<name>` | Target a specific account                                                          |
+| `--debug`          | Print verbose request/response detail                                              |
 
 **Fetch examples:**
 
@@ -205,16 +205,16 @@ hs project profile delete               # Delete a deploy profile
 
 **Key flags:**
 
-| Flag | Description |
-|---|---|
-| `--name=<name>` | Project name |
-| `--dest=<path>` | Local destination directory |
-| `--platform-version=<ver>` | Platform version: `2025.2`, `2026.03-beta`, `2026.09-beta` |
-| `--features=<list>` | Features: `card`, `settings`, `webhooks`, `workflow`, `scim` |
-| `--account=<name>` | Target account |
-| `--buildId=<id>` | Target a specific build ID |
-| `--force` | Bypass blocked deploy warnings or skip deletion confirmation |
-| `--port=<number>` | Custom port for `hs project dev` local server |
+| Flag                       | Description                                                  |
+| -------------------------- | ------------------------------------------------------------ |
+| `--name=<name>`            | Project name                                                 |
+| `--dest=<path>`            | Local destination directory                                  |
+| `--platform-version=<ver>` | Platform version: `2026.09` (current), `2026.03`, `2025.2`   |
+| `--features=<list>`        | Features: `card`, `settings`, `webhooks`, `workflow`, `scim` |
+| `--account=<name>`         | Target account                                               |
+| `--buildId=<id>`           | Target a specific build ID                                   |
+| `--force`                  | Bypass blocked deploy warnings or skip deletion confirmation |
+| `--port=<number>`          | Custom port for `hs project dev` local server                |
 
 **Typical project workflow:**
 
@@ -229,9 +229,15 @@ hs project logs             # Inspect function logs
 ```
 
 **Platform versions:**
-- `2025.2` — current stable GA
-- `2026.03-beta` — next generation features
-- `2026.09-beta` — early access
+
+- `2026.09` — **current GA** (released 2026-09-08); adds user-level app access and service keys
+- `2026.03` — supported (released 2026-03-30); reintroduced serverless function support
+- `2025.2` — supported (released 2025-09-02); requires Node.js v22+
+- `2025.1` — **sunset** 2026-08-01
+- `2023.2` — **sunset** 2025-10-01
+
+Platform versions ship every 6 months and are supported for 18 months. Set the
+version in `hsproject.json` via `"platformVersion"`.
 
 ---
 
@@ -244,7 +250,7 @@ hs hubdb delete <tableId>     # Delete a HubDB table from the account
 hs hubdb list                 # List all HubDB tables in the account
 ```
 
-Table data is saved as `<tablename>.hubdb.json`. Upload a modified file back via the HubDB API (no CLI upload command yet — use `POST /cms/v3/hubdb/tables/{tableId}/rows/batch/create`).
+Table data is saved as `<tablename>.hubdb.json`. Upload a modified file back via the HubDB API (no CLI upload command yet — use `POST /cms/hubdb/2026-09/tables/{tableId}/rows/batch/create`).
 
 ---
 
@@ -282,6 +288,7 @@ hs sandbox create              # Create a new sandbox (standard or development)
 ```
 
 Interactive prompt asks for sandbox type:
+
 - **Standard sandbox** — syncs supported assets from production; last 5,000 contacts + associated objects copied once.
 - **Development sandbox** — blank environment for testing.
 
@@ -310,8 +317,8 @@ hs functions ls --account=<name>   # Legacy: also prints console.log output (90-
 Make authenticated HTTP requests to any HubSpot API using CLI credentials:
 
 ```bash
-hs api GET /crm/v3/objects/contacts --account=myco-prod
-hs api POST /crm/v3/objects/contacts --body='{"properties":{"email":"test@example.com"}}'
+hs api GET /crm/objects/2026-09/contacts --account=myco-prod
+hs api POST /crm/objects/2026-09/contacts --body='{"properties":{"email":"test@example.com"}}'
 ```
 
 Useful for quick API exploration without managing tokens manually.
@@ -343,16 +350,16 @@ hs feedback        # Open HubSpot Developers feedback page
 
 ### 14. Global flags
 
-| Flag | Effect |
-|---|---|
+| Flag               | Effect                                  |
+| ------------------ | --------------------------------------- |
 | `--account=<name>` | Target a specific authenticated account |
-| `--debug` | Verbose request/response logging |
-| `--overwrite` | Allow local file overwrite on fetch |
-| `--remove` | Delete remote on local delete (watch) |
-| `--force` | Skip confirmation prompts |
-| `--buildId=<id>` | Specify a build ID |
-| `--use-env` | Read credentials from env vars |
-| `--help` | Show command help |
+| `--debug`          | Verbose request/response logging        |
+| `--overwrite`      | Allow local file overwrite on fetch     |
+| `--remove`         | Delete remote on local delete (watch)   |
+| `--force`          | Skip confirmation prompts               |
+| `--buildId=<id>`   | Specify a build ID                      |
+| `--use-env`        | Read credentials from env vars          |
+| `--help`           | Show command help                       |
 
 **Environment variable overrides:**
 
@@ -379,7 +386,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "22"
       - run: npm install -g @hubspot/cli
       - run: hs upload ./my-theme themes/my-theme --use-env
         env:
@@ -401,10 +408,12 @@ hs doctor                            # Should report no errors
 ```
 
 For a CMS upload:
+
 - Check `app.hubspot.com/design-manager/<portalId>` for uploaded files
 - `hs list themes/my-theme` should show the uploaded directory
 
 For a project build:
+
 - `hs project list` shows the project
 - `hs project get-build-status` / `hs project logs` shows build details
 
@@ -412,19 +421,19 @@ For a project build:
 
 ## Failure modes
 
-| Error | Cause | Fix |
-|---|---|---|
-| `Command not found: hs` | CLI not installed or not in PATH | `npm install -g @hubspot/cli`; restart terminal |
-| `Failed to update the configuration file` | `~/.hscli/config.yml` read-only or owned by another user | Check file ownership: `ls -la ~/.hscli/config.yml`; fix with `chown` |
-| `403 Forbidden` on upload | Personal Access Key lacks Design Manager scope | Regenerate PAK with CMS/Design Manager scope enabled |
-| `Config not found` | Running `hs` outside a directory with config | Run `hs account link` in project root or pass `--account=<name>` |
-| Watch hangs on large upload | `node_modules/` not excluded | Add `node_modules/` to `.hsignore` |
-| `hslocal.net` certificate error | Self-signed cert not trusted | Accept cert once in browser at `https://hslocal.net:3000` |
-| Wrong account targeted | Default portal mismatch | `hs account default --account=<alias>` or pass `--account` |
-| CI deploy fails with auth error | Env var name wrong | Confirm var names are `HUBSPOT_PORTAL_ID` and `HUBSPOT_PERSONAL_ACCESS_KEY` |
-| `hs sandbox sync` not found | Command was sunset Sep 2024 | Use HubSpot UI to sync sandbox |
-| Build fails after `hs project upload` | Code error or config issue | Run `hs project logs` and inspect `buildErrorMessage` |
-| Legacy command not found (v8) | Command removed Feb 2026 | See [v8 migration guide](https://developers.hubspot.com/docs/developer-tooling/local-development/hubspot-cli/cli-v8-migration) for replacement commands |
+| Error                                     | Cause                                                    | Fix                                                                                                                                    |
+| ----------------------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `Command not found: hs`                   | CLI not installed or not in PATH                         | `npm install -g @hubspot/cli`; restart terminal                                                                                        |
+| `Failed to update the configuration file` | `~/.hscli/config.yml` read-only or owned by another user | Check file ownership: `ls -la ~/.hscli/config.yml`; fix with `chown`                                                                   |
+| `403 Forbidden` on upload                 | Personal Access Key lacks Design Manager scope           | Regenerate PAK with CMS/Design Manager scope enabled                                                                                   |
+| `Config not found`                        | Running `hs` outside a directory with config             | Run `hs account link` in project root or pass `--account=<name>`                                                                       |
+| Watch hangs on large upload               | `node_modules/` not excluded                             | Add `node_modules/` to `.hsignore`                                                                                                     |
+| `hslocal.net` certificate error           | Self-signed cert not trusted                             | Accept cert once in browser at `https://hslocal.net:3000`                                                                              |
+| Wrong account targeted                    | Default portal mismatch                                  | `hs account default --account=<alias>` or pass `--account`                                                                             |
+| CI deploy fails with auth error           | Env var name wrong                                       | Confirm var names are `HUBSPOT_PORTAL_ID` and `HUBSPOT_PERSONAL_ACCESS_KEY`                                                            |
+| `hs sandbox sync` not found               | Command was sunset Sep 2024                              | Use HubSpot UI to sync sandbox                                                                                                         |
+| Build fails after `hs project upload`     | Code error or config issue                               | Run `hs project logs` and inspect `buildErrorMessage`                                                                                  |
+| Legacy command not found (v8)             | Command removed Feb 2026                                 | See [v8 migration guide](https://developers.hubspot.com/docs/developer-tooling/local-development/hubspot-cli) for replacement commands |
 
 ---
 
@@ -433,7 +442,7 @@ For a project build:
 - CLI docs: https://developers.hubspot.com/docs/developer-tooling/local-development/hubspot-cli
 - Changelog: https://developers.hubspot.com/changelog (filter by "CLI")
 - GitHub: https://github.com/HubSpot/hubspot-cli
-- v8 migration guide: https://developers.hubspot.com/docs/developer-tooling/local-development/hubspot-cli/cli-v8-migration
+- v8 migration guide: https://developers.hubspot.com/docs/developer-tooling/local-development/hubspot-cli
 - For MCP server setup: see `hubspot-mcp-server` skill
-- For CMS local dev workflow: see `hubspot-cms-local-dev` skill
+- For CMS theme development: see `hubspot-cms-themes` skill
 - For project/app builds: see `hubspot-cms-react` skill

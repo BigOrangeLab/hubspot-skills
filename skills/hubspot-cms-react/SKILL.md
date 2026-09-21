@@ -1,22 +1,24 @@
 ---
 name: hubspot-cms-react
 description: "Build HubSpot CMS React projects — project structure, JSX fields API, Island components for interactivity, HubL templates referencing React modules, and deployment"
-compatibility: "Content Hub Professional+ for React modules/templates; Enterprise for serverless; CLI v7+; Node.js v20+"
+compatibility: "Content Hub Professional+ for React modules/templates; Enterprise for serverless; CLI v8+; Node.js v22+; Developer Platform 2026.09"
 license: MIT
 metadata:
-    author: georgestephanis
-    version: "1.1"
-    written: "2026-06-09"
-    written_against:
-        hubspot-cli: "7.10"
-        hubspot-cms-components: "latest"
-        content-hub: "Professional+"
-        nodejs: "v20"
+  author: georgestephanis
+  version: "1.2"
+  written: "2026-09-21"
+  written_against:
+    hubspot-cli: "8.15.0"
+    hubspot-developer-platform: "2026.09"
+    hubspot-cms-components: "latest"
+    content-hub: "Professional+"
+    nodejs: "v22"
 ---
 
 ## When to use
 
 Use this skill when:
+
 - Building CMS templates or modules using React and TypeScript rather than HubL
 - The project team prefers JSX component patterns over HubL templating
 - You need React state, hooks, or the npm ecosystem within CMS content modules
@@ -24,22 +26,22 @@ Use this skill when:
 
 **HubL theme vs. React CMS project:**
 
-| | HubL Theme | React CMS Project |
-|---|---|---|
-| Language | HubL (Jinja-based) | JSX / TSX + React |
-| Design Manager | Full file browser | Not visible — CLI only |
-| Local dev | `hs watch` | `hs project dev` (or `npm start`) |
-| Deploy | `hs upload` | `hs project upload` |
-| Min tier | Starter | Professional |
-| With serverless | Enterprise | Enterprise |
-| Build step | None | npm build via Vite |
+|                 | HubL Theme         | React CMS Project                 |
+| --------------- | ------------------ | --------------------------------- |
+| Language        | HubL (Jinja-based) | JSX / TSX + React                 |
+| Design Manager  | Full file browser  | Not visible — CLI only            |
+| Local dev       | `hs watch`         | `hs project dev` (or `npm start`) |
+| Deploy          | `hs upload`        | `hs project upload`               |
+| Min tier        | Starter            | Professional                      |
+| With serverless | Enterprise         | Enterprise                        |
+| Build step      | None               | npm build via Vite                |
 
 Use HubL for content-focused sites with editors comfortable in Design Manager. Use React CMS for developer-owned codebases that need component composition, TypeScript, or interactive UIs.
 
 ## Inputs required
 
-- Node.js v20+ (`node --version`)
-- HubSpot CLI installed and authenticated — see `hubspot-cms-local-dev`
+- Node.js v22+ (`node --version`) — required by Developer Platform 2025.2 and later
+- HubSpot CLI installed and authenticated — see `hubspot-cli`
 - Content Hub Professional or Enterprise subscription
 - HubSpot account ID (needed for the dev server proxy)
 
@@ -91,11 +93,13 @@ my-project/
 {
   "name": "my-cms-project",
   "srcDir": "src",
-  "platformVersion": "2023.2"
+  "platformVersion": "2026.09"
 }
 ```
 
-`platformVersion` controls which Developer Platform features are available. Use `2023.2` or the latest stable version for new projects.
+`platformVersion` controls which Developer Platform features are available. Use
+`2026.09` (current GA) for new projects. Note that `2023.2` **sunset on 2025-10-01**
+and `2025.1` sunset on 2026-08-01 — projects pinned to either will fail to build.
 
 ### 3. `package.json` — key dependencies
 
@@ -128,15 +132,15 @@ Every React module is a directory containing `index.tsx` (or `.jsx`) with three 
 
 ```tsx
 // components/modules/Header/index.tsx
-import React from 'react';
-import { Menu } from '@hubspot/cms-components';
+import React from "react";
+import { Menu } from "@hubspot/cms-components";
 import {
   ImageField,
   MenuField,
   ModuleFields,
-} from '@hubspot/cms-components/fields';
-import logo from '../../../assets/sprocket.svg';
-import headerStyles from '../../../styles/header.module.css';
+} from "@hubspot/cms-components/fields";
+import logo from "../../../assets/sprocket.svg";
+import headerStyles from "../../../styles/header.module.css";
 
 // 1. Component — receives fieldValues as props
 export function Component({ fieldValues }: any) {
@@ -152,13 +156,13 @@ export function Component({ fieldValues }: any) {
 }
 
 // 2. fields — JSX field definitions (replaces fields.json for React modules)
-const DEFAULT_MENU_ID = 'YOUR_MENU_ID_HERE';
+const DEFAULT_MENU_ID = "YOUR_MENU_ID_HERE";
 export const fields = (
   <ModuleFields>
     <ImageField
       name="logo"
       label="Logo"
-      default={{ src: logo, height: 100, alt: 'Site logo' }}
+      default={{ src: logo, height: 100, alt: "Site logo" }}
       resizable={true}
     />
     <MenuField name="menu" label="Menu" default={DEFAULT_MENU_ID} />
@@ -167,29 +171,29 @@ export const fields = (
 
 // 3. meta — module metadata
 export const meta = {
-  label: 'Header Module',
+  label: "Header Module",
 };
 ```
 
 **JSX field components from `@hubspot/cms-components/fields`:**
 
-| JSX component | Equivalent JSON type |
-|---|---|
-| `<TextField>` | `text` |
-| `<RichTextField>` | `richtext` |
-| `<ImageField>` | `image` |
-| `<LinkField>` | `link` |
-| `<NumberField>` | `number` |
-| `<BooleanField>` | `boolean` |
-| `<ChoiceField>` | `choice` |
-| `<ColorField>` | `color` |
-| `<FontField>` | `font` |
-| `<MenuField>` | `menu` |
-| `<PageField>` | `page` |
-| `<FormField>` | `form` |
-| `<GroupField>` | `group` |
+| JSX component          | Equivalent JSON type      |
+| ---------------------- | ------------------------- |
+| `<TextField>`          | `text`                    |
+| `<RichTextField>`      | `richtext`                |
+| `<ImageField>`         | `image`                   |
+| `<LinkField>`          | `link`                    |
+| `<NumberField>`        | `number`                  |
+| `<BooleanField>`       | `boolean`                 |
+| `<ChoiceField>`        | `choice`                  |
+| `<ColorField>`         | `color`                   |
+| `<FontField>`          | `font`                    |
+| `<MenuField>`          | `menu`                    |
+| `<PageField>`          | `page`                    |
+| `<FormField>`          | `form`                    |
+| `<GroupField>`         | `group`                   |
 | `<RepeatedGroupField>` | `group` with `occurrence` |
-| `<ModuleFields>` | root wrapper (required) |
+| `<ModuleFields>`       | root wrapper (required)   |
 
 ### 5. Island components — client-side interactivity
 
@@ -197,9 +201,9 @@ React components render **server-side by default**. For interactive components t
 
 ```tsx
 // components/modules/Weather/index.tsx
-import { Island } from '@hubspot/cms-components';
-import WeatherForecast from '../../islands/WeatherForecast.tsx?island';
-import { ModuleFields, TextField } from '@hubspot/cms-components/fields';
+import { Island } from "@hubspot/cms-components";
+import WeatherForecast from "../../islands/WeatherForecast.tsx?island";
+import { ModuleFields, TextField } from "@hubspot/cms-components/fields";
 
 export function Component({ fieldValues }: any) {
   const { headline } = fieldValues;
@@ -216,23 +220,25 @@ export const fields = (
   </ModuleFields>
 );
 
-export const meta = { label: 'Weather Module' };
+export const meta = { label: "Weather Module" };
 ```
 
 ```tsx
 // components/islands/WeatherForecast.tsx  ← note the ?island import suffix above
-import { useState } from 'react';
+import { useState } from "react";
 
-interface Props { headline: string; }
+interface Props {
+  headline: string;
+}
 
 export default function WeatherForecast({ headline }: Props) {
-  const [city, setCity] = useState('');
+  const [city, setCity] = useState("");
   const [data, setData] = useState<any>(null);
 
   const fetchWeather = () => {
     // Fetch from your serverless function or a public API
     fetch(`/hs/serverless/weather?city=${encodeURIComponent(city)}`)
-      .then(r => r.json())
+      .then((r) => r.json())
       .then(setData);
   };
 
@@ -242,7 +248,7 @@ export default function WeatherForecast({ headline }: Props) {
       <input
         type="text"
         placeholder="Enter city"
-        onChange={e => setCity(e.target.value)}
+        onChange={(e) => setCity(e.target.value)}
       />
       <button onClick={fetchWeather}>Get Forecast</button>
       {data?.forecast && <p>{data.forecast.summary}</p>}
@@ -252,6 +258,7 @@ export default function WeatherForecast({ headline }: Props) {
 ```
 
 **Island rules:**
+
 - Import the file with `?island` suffix to mark it for client-side hydration
 - The Island file must be the **default export**
 - Props passed to `<Island>` are serialised to JSON — keep them serialisable
@@ -295,11 +302,8 @@ Templates in a React theme are still HubL `.hubl.html` files that reference Reac
   isAvailableForNewContent: true
   label: Getting Started - Weather Forecast
 -->
-{% extends "./layouts/base.hubl.html" %}
-
-{% block body %}
-  {% module "weather" path="../components/modules/Weather" %}
-{% endblock body %}
+{% extends "./layouts/base.hubl.html" %} {% block body %} {% module "weather"
+path="../components/modules/Weather" %} {% endblock body %}
 ```
 
 The base layout is a HubL file too:
@@ -317,15 +321,10 @@ The base layout is a HubL file too:
   </head>
   <body>
     <div class="body-wrapper {{ builtin_body_classes }}">
-      {% block header %}
-        {% module 'main header' path="../../components/modules/Header" %}
-      {% endblock header %}
-
-      {% block body %}{% endblock body %}
-
-      {% block footer %}
-        {% module 'footer' path="../../components/modules/Footer" %}
-      {% endblock footer %}
+      {% block header %} {% module 'main header'
+      path="../../components/modules/Header" %} {% endblock header %} {% block
+      body %}{% endblock body %} {% block footer %} {% module 'footer'
+      path="../../components/modules/Footer" %} {% endblock footer %}
     </div>
     {{ standard_footer_includes }}
   </body>
@@ -346,6 +345,7 @@ npm start
 ```
 
 Opens `https://hslocal.net:3000/`. The dev server:
+
 - Hot-reloads React components on save (no page refresh needed for component changes)
 - Proxies CMS data from your HubSpot account
 - Requires CLI authentication
@@ -361,6 +361,7 @@ hs project upload
 Runs the Vite build and uploads compiled assets to HubSpot. Typically takes 30–60 seconds.
 
 **Check deploy logs if it fails:**
+
 ```bash
 hs project logs
 ```
@@ -381,7 +382,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "22"
       - name: Deploy HubSpot Project
         uses: HubSpot/hubspot-project-upload-action@v1
         with:
@@ -389,7 +390,7 @@ jobs:
           personal_access_key: ${{ secrets.HUBSPOT_PERSONAL_ACCESS_KEY }}
 ```
 
-Note: for theme-only projects (no `app.json`), use the `hubspot-cms-deploy-action` with `src_dir`/`dest_dir` instead (see `hubspot-cms-local-dev`).
+Note: for theme-only projects (no `app.json`), use the `hubspot-cms-deploy-action` with `src_dir`/`dest_dir` instead (see `hubspot-cms-themes`).
 
 ### 11. `cms-assets` pattern — adding React modules to an existing HubL theme
 
@@ -423,11 +424,11 @@ The HubL theme files remain in their existing Design Manager location. React mod
 
 ```html
 {% module "interactive_map"
-  path="@projects/my-project/cms-assets/components/modules/InteractiveMap"
-%}
+path="@projects/my-project/cms-assets/components/modules/InteractiveMap" %}
 ```
 
 Use this pattern when:
+
 - An existing HubL theme is already live and you do not want to migrate it
 - You want to introduce one or two React modules without a full project rewrite
 - The team works primarily in HubL but needs a specific interactive component
@@ -440,10 +441,7 @@ React CMS modules can query HubSpot CRM and CMS data at render time using GraphQ
 
 ```json
 {
-  "scopes": [
-    "collector.graphql_schema.read",
-    "collector.graphql_query.execute"
-  ]
+  "scopes": ["collector.graphql_schema.read", "collector.graphql_query.execute"]
 }
 ```
 
@@ -451,20 +449,21 @@ React CMS modules can query HubSpot CRM and CMS data at render time using GraphQ
 
 ```tsx
 // components/modules/ContactList/index.tsx
-import { useServerlessFunctionResult } from '@hubspot/cms-components';
+import { useServerlessFunctionResult } from "@hubspot/cms-components";
 
 export function Component({ fieldValues }: any) {
-  const { data } = useServerlessFunctionResult(
-    '/hs/serverless/contacts',
-    { method: 'GET' }
-  );
+  const { data } = useServerlessFunctionResult("/hs/serverless/contacts", {
+    method: "GET",
+  });
 
   if (!data) return <p>Loading…</p>;
 
   return (
     <ul>
       {data.contacts.map((c: any) => (
-        <li key={c.id}>{c.properties.firstname} {c.properties.lastname}</li>
+        <li key={c.id}>
+          {c.properties.firstname} {c.properties.lastname}
+        </li>
       ))}
     </ul>
   );
@@ -472,6 +471,7 @@ export function Component({ fieldValues }: any) {
 ```
 
 For full GraphQL query examples and schema exploration, see the [graphql-storybook example](https://github.com/HubSpot/cms-react/tree/main/examples/graphql-storybook) in the `HubSpot/cms-react` repo. The example demonstrates:
+
 - Querying CRM objects (contacts, companies, custom objects) by GraphQL
 - The `/collector/graphql` endpoint
 - Storybook-based component development with mocked GraphQL responses
@@ -489,16 +489,16 @@ The GraphQL endpoint is at `/_hcms/api/graphql` (available once the required sco
 
 ## Failure modes
 
-| Symptom | Likely cause | Fix |
-|---|---|---|
-| `npm start` fails with Node error | Node < v20 | `nvm use 20` or install Node 20 |
-| Module not in editor | Missing or wrong `meta.label`, or project not uploaded | Check `meta` export; run `hs project upload` |
-| Island not interactive | Missing `?island` import suffix | Import as `import Foo from './Foo.tsx?island'` |
-| Props not reaching Island | Non-serialisable props passed to `<Island>` | Props must be JSON-serialisable (no functions, class instances) |
-| Build fails: "cannot find module" | Dependency not installed | Run `npm install` inside the theme directory |
-| HubL template can't find React module | Wrong relative path in `{% module %}` | Path is relative to template file; use `..` to navigate up |
-| `standard_header_includes` missing | Omitted from base layout | Required in all HubL base layouts — add to `<head>` |
-| React assets not in Design Manager | Expected — React CMS assets are not Design Manager files | Use CLI / project workflow only for these assets |
+| Symptom                               | Likely cause                                             | Fix                                                             |
+| ------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------- |
+| `npm start` fails with Node error     | Node < v22                                               | `nvm use 22` or install Node 22                                 |
+| Module not in editor                  | Missing or wrong `meta.label`, or project not uploaded   | Check `meta` export; run `hs project upload`                    |
+| Island not interactive                | Missing `?island` import suffix                          | Import as `import Foo from './Foo.tsx?island'`                  |
+| Props not reaching Island             | Non-serialisable props passed to `<Island>`              | Props must be JSON-serialisable (no functions, class instances) |
+| Build fails: "cannot find module"     | Dependency not installed                                 | Run `npm install` inside the theme directory                    |
+| HubL template can't find React module | Wrong relative path in `{% module %}`                    | Path is relative to template file; use `..` to navigate up      |
+| `standard_header_includes` missing    | Omitted from base layout                                 | Required in all HubL base layouts — add to `<head>`             |
+| React assets not in Design Manager    | Expected — React CMS assets are not Design Manager files | Use CLI / project workflow only for these assets                |
 
 ## Escalation
 

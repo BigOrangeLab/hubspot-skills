@@ -1,15 +1,22 @@
 ---
 name: hubspot-workflows-api
 description: "Create and manage HubSpot automation workflows programmatically using the Flows v4 API — read existing workflows, enroll contacts, build custom coded actions in Developer Platform projects, trigger workflows from external events, and wire up Breeze AI Agent Tools."
-compatibility: "Marketing Hub Pro/Enterprise, Sales Hub Pro/Enterprise, or Service Hub Pro/Enterprise for workflows. Operations Hub Pro/Enterprise for custom coded actions. Developer Platform v2025.2 for project-based custom actions."
+compatibility: "Marketing Hub Pro/Enterprise, Sales Hub Pro/Enterprise, or Service Hub Pro/Enterprise for workflows. Operations Hub Pro/Enterprise for custom coded actions. Developer Platform 2026.09 for project-based custom actions."
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
-    written: "2026-06-09"
+    version: "1.1"
+    written: "2026-09-21"
     written_against:
-        hubspot-api: "automation/v4"
-        hubspot-developer-platform: "2025.2"
+        hubspot-api: "automation/v4 (flows), automation/actions/2026-09 (custom actions)"
+        hubspot-developer-platform: "2026.09"
+---
+
+> **Versioning:** the Flows API has **no GA date-based version** as of 2026-09 —
+> only `2026-09-beta`. Stay on `/automation/v4/flows` for production traffic.
+> Custom workflow actions *do* have GA: `/automation/actions/2026-09/{appId}`.
+> See `hubspot-api-versioning`.
+
 ---
 
 ## When to use
@@ -29,10 +36,10 @@ metadata:
 
 ## Inputs required
 
-- Private App token with `automation` scope for Flows API operations
+- Account service key with `automation` scope for Flows API operations
 - For custom coded actions: HubSpot CLI v8.x, Developer Platform project, Operations Hub Pro/Enterprise
 - For enrollment API: `automation` scope + the workflow ID and enrolled object ID
-- For Breeze AI Agent Tools: Developer Platform v2025.2 project
+- For Breeze AI Agent Tools: Developer Platform 2026.09 project
 
 ---
 
@@ -197,7 +204,7 @@ A custom coded action is a Node.js function that runs as a step in any visual wo
 hs project create \
   --name=my-workflow-actions \
   --dest=./my-workflow-actions \
-  --platform-version=2025.2
+  --platform-version=2026.09
 ```
 
 When prompted (or via `hs project add`), add a **custom workflow action** feature.
@@ -409,7 +416,7 @@ Custom Behavioral Events let you send an event from outside HubSpot (e.g., a use
 **Create the event definition** (one-time, via API or UI):
 
 ```
-POST https://api.hubapi.com/events/v3/event-definitions
+POST https://api.hubapi.com/events/2026-09/event-definitions
 ```
 
 ```json
@@ -428,7 +435,7 @@ POST https://api.hubapi.com/events/v3/event-definitions
 **Send an event occurrence:**
 
 ```
-POST https://api.hubapi.com/events/v3/send
+POST https://api.hubapi.com/events/2026-09/send
 ```
 
 ```json
@@ -477,7 +484,7 @@ For custom actions:
 
 | Error | Cause | Fix |
 |---|---|---|
-| `403 FORBIDDEN` on Flows API | Token missing `automation` scope | Add `automation` scope to the private app |
+| `403 FORBIDDEN` on Flows API | Token missing `automation` scope | Add `automation` scope to the service key |
 | `404` on enrollment | Wrong flow ID or contact not found | Confirm IDs via `GET /automation/v4/flows` and CRM API |
 | `409` on enrollment | Contact already enrolled | Check enrollment status first; unenroll before re-enrolling |
 | Custom action not visible in workflow editor | Not deployed or deployed to wrong account | Run `hs project deploy`; check `hs account current` |
@@ -492,8 +499,8 @@ For custom actions:
 ## Escalation
 
 - Flows API reference: https://developers.hubspot.com/docs/api/automation/workflows
-- Enrollment API: https://developers.hubspot.com/docs/api/automation/workflow-enrollment
-- Custom coded actions: https://developers.hubspot.com/docs/developer-tooling/custom-workflow-actions
+- Enrollment API: https://developers.hubspot.com/docs/guides/api/automation/create-manage-workflows
+- Custom coded actions: https://developers.hubspot.com/docs/guides/api/automation/custom-workflow-actions
 - Custom Behavioral Events: https://developers.hubspot.com/docs/api/analytics/events
 - For project build/deploy: see `hubspot-cli` skill
 - For secrets management: see `hubspot-cms-serverless` skill

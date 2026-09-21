@@ -1,14 +1,14 @@
 ---
 name: hubspot-custom-objects
 description: "Create and manage custom CRM object types in HubSpot — Schemas API for type/property/display-property definition, CRUD for custom object records, p_* wildcard in UI extensions, and Object Definition Pages for schema introspection"
-compatibility: "Operations Hub Professional or Enterprise required for custom objects; CRM v3 + Schemas API"
+compatibility: "Operations Hub Professional or Enterprise required for custom objects; CRM API 2026-09 + Schemas API 2026-09"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
-    written: "2026-06-09"
+    version: "1.1"
+    written: "2026-09-21"
     written_against:
-        hubspot-api: "crm/v3/schemas"
+        hubspot-api: "2026-09"
 ---
 
 ## When to use
@@ -29,7 +29,7 @@ metadata:
 
 ## Inputs required
 
-- Private App token with `crm.schemas.custom.read`, `crm.schemas.custom.write`, and `crm.objects.custom.read`, `crm.objects.custom.write` scopes
+- Account service key with `crm.schemas.custom.read`, `crm.schemas.custom.write`, and `crm.objects.custom.read`, `crm.objects.custom.write` scopes
 - Object type name (singular and plural, e.g., "Subscription" / "Subscriptions")
 - List of properties with their types, field types, and any validation rules
 - `primaryDisplayProperty` — the property whose value appears as the record name in the CRM UI
@@ -41,7 +41,7 @@ metadata:
 ### 1. Create a custom object schema
 
 ```
-POST /crm/v3/schemas
+POST /crm-object-schemas/2026-09/schemas
 ```
 
 ```json
@@ -159,7 +159,7 @@ Only one property per object type can have `hasUniqueValue: true` (beyond `hs_ob
 ### 3. Add a property to an existing schema
 
 ```
-POST /crm/v3/properties/{objectTypeId}
+POST /crm/properties/2026-09/{objectTypeId}
 ```
 
 ```json
@@ -186,13 +186,13 @@ POST /crm/v3/properties/{objectTypeId}
 # Get a specific schema by objectType (name or objectTypeId)
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/crm/v3/schemas/2-12345678" \
+  "https://api.hubapi.com/crm-object-schemas/2026-09/schemas/2-12345678" \
   | jq '{objectTypeId: .objectTypeId, name: .name, properties: [.properties[].name]}'
 
 # List all custom schemas in the portal
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/crm/v3/schemas" \
+  "https://api.hubapi.com/crm-object-schemas/2026-09/schemas" \
   | jq '[.results[] | {objectTypeId: .objectTypeId, name: .name}]'
 ```
 
@@ -201,7 +201,7 @@ curl -s \
 ### 5. Update the schema (labels, primaryDisplayProperty, searchableProperties)
 
 ```
-PATCH /crm/v3/schemas/{objectTypeId}
+PATCH /crm-object-schemas/2026-09/schemas/{objectTypeId}
 ```
 
 ```json
@@ -235,12 +235,12 @@ curl -s -X POST \
       "mrr": 999
     }
   }' \
-  "https://api.hubapi.com/crm/v3/objects/2-12345678"
+  "https://api.hubapi.com/crm/objects/2026-09/2-12345678"
 
 # Get by ID
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/crm/v3/objects/2-12345678/98765?properties=plan_name,status,mrr"
+  "https://api.hubapi.com/crm/objects/2026-09/2-12345678/98765?properties=plan_name,status,mrr"
 
 # Upsert by external_id
 curl -s -X POST \
@@ -255,7 +255,7 @@ curl -s -X POST \
       }
     ]
   }' \
-  "https://api.hubapi.com/crm/v3/objects/2-12345678/batch/upsert"
+  "https://api.hubapi.com/crm/objects/2026-09/2-12345678/batch/upsert"
 ```
 
 All batch operations, Search API, associations, and merge patterns from `hubspot-crm-objects` work identically with custom object `objectTypeId`.
@@ -323,7 +323,7 @@ Archiving a schema prevents new record creation but preserves existing records.
 # Archive (disable) the schema
 curl -s -X DELETE \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/crm/v3/schemas/2-12345678"
+  "https://api.hubapi.com/crm-object-schemas/2026-09/schemas/2-12345678"
 ```
 
 Permanently purge (irreversible — deletes all records):
@@ -331,7 +331,7 @@ Permanently purge (irreversible — deletes all records):
 ```bash
 curl -s -X DELETE \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/crm/v3/schemas/2-12345678?archived=true"
+  "https://api.hubapi.com/crm-object-schemas/2026-09/schemas/2-12345678?archived=true"
 ```
 
 ---
@@ -342,7 +342,7 @@ curl -s -X DELETE \
 # Confirm schema was created and properties are correct
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/crm/v3/schemas/subscriptions" \
+  "https://api.hubapi.com/crm-object-schemas/2026-09/schemas/subscriptions" \
   | jq '{
       objectTypeId: .objectTypeId,
       primaryDisplayProperty: .primaryDisplayProperty,
@@ -355,12 +355,12 @@ RECORD_ID=$(curl -s -X POST \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"properties":{"plan_name":"Test","status":"active","external_id":"test-001"}}' \
-  "https://api.hubapi.com/crm/v3/objects/2-12345678" \
+  "https://api.hubapi.com/crm/objects/2026-09/2-12345678" \
   | jq -r '.id')
 
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/crm/v3/objects/2-12345678/$RECORD_ID?properties=plan_name,status" \
+  "https://api.hubapi.com/crm/objects/2026-09/2-12345678/$RECORD_ID?properties=plan_name,status" \
   | jq .properties
 ```
 
@@ -371,7 +371,7 @@ curl -s \
 | Error | Cause | Fix |
 |---|---|---|
 | `403 FORBIDDEN` on schema create | Portal doesn't have Operations Hub Pro+ | Upgrade tier or use a sandbox with the right tier |
-| `409 CONFLICT` on schema create | Object type with that `name` already exists | GET `/crm/v3/schemas` to find the existing `objectTypeId` |
+| `409 CONFLICT` on schema create | Object type with that `name` already exists | GET `/crm-object-schemas/2026-09/schemas` to find the existing `objectTypeId` |
 | `422 VALIDATION_ERROR` on property | Invalid `type`/`fieldType` combination | Check the property types table in Step 2 |
 | `422` on enumeration property | Missing `options` array | Enumeration and boolean fields require at least one option |
 | Property missing from search results | Property not in `searchableProperties` | PATCH the schema to add the property name |
@@ -388,5 +388,5 @@ curl -s \
 - Object Definition Pages: https://knowledge.hubspot.com/object-settings/create-custom-objects
 - For CRM record CRUD operations: see `hubspot-crm-objects` skill
 - For adding/modifying properties: see `hubspot-properties-api` skill
-- For associations to/from custom objects: see `hubspot-associations-v4` skill
+- For associations to/from custom objects: see `hubspot-associations` skill
 - For UI extension p_* usage: see `hubspot-ui-extensions` skill
