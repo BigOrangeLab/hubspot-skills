@@ -1,6 +1,6 @@
 # HubSpot Public API Endpoint Catalog
 
-Generated from the OpenAPI 3.0 specs in the `HubSpot/public-api-spec-collection` repository.
+Generated from the OpenAPI 3.0 specs in the `HubSpot/HubSpot-public-api-spec-collection` repository.
 Base URL for all endpoints: `https://api.hubapi.com`
 
 ---
@@ -617,4 +617,4 @@ Same pattern as landing pages at `/cms/pages/2026-09/site-pages/…`
 
 ---
 
-*Full OpenAPI schemas available at `/tmp/HubSpot-public-api-spec-collection/PublicApiSpecs/` (local clone) or https://github.com/HubSpot/public-api-spec-collection*
+*Full OpenAPI schemas available at `/tmp/HubSpot-public-api-spec-collection/PublicApiSpecs/` (local clone) or [HubSpot/HubSpot-public-api-spec-collection](https://github.com/HubSpot/HubSpot-public-api-spec-collection).*
