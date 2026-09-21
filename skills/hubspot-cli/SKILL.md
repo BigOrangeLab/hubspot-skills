@@ -386,7 +386,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
       - run: npm install -g @hubspot/cli
       - run: hs upload ./my-theme themes/my-theme --use-env
         env:

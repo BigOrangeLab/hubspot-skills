@@ -499,7 +499,7 @@ For custom actions:
 ## Escalation
 
 - Flows API reference: https://developers.hubspot.com/docs/api/automation/workflows
-- Enrollment API: https://developers.hubspot.com/docs/guides/api/automation/custom-workflow-actions
+- Enrollment API: https://developers.hubspot.com/docs/guides/api/automation/create-manage-workflows
 - Custom coded actions: https://developers.hubspot.com/docs/guides/api/automation/custom-workflow-actions
 - Custom Behavioral Events: https://developers.hubspot.com/docs/api/analytics/events
 - For project build/deploy: see `hubspot-cli` skill

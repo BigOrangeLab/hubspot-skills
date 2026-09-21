@@ -382,7 +382,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
       - name: Deploy HubSpot Project
         uses: HubSpot/hubspot-project-upload-action@v1
         with:
