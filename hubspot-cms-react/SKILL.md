@@ -1,14 +1,15 @@
 ---
 name: hubspot-cms-react
 description: "Build HubSpot CMS React projects — project structure, JSX fields API, Island components for interactivity, HubL templates referencing React modules, and deployment"
-compatibility: "Content Hub Professional+ for React modules/templates; Enterprise for serverless; CLI v7+; Node.js v20+"
+compatibility: "Content Hub Professional+ for React modules/templates; Enterprise for serverless; CLI v8+; Node.js v22+; Developer Platform 2026.09"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.1"
-    written: "2026-06-09"
+    version: "1.2"
+    written: "2026-09-21"
     written_against:
-        hubspot-cli: "7.10"
+        hubspot-cli: "8.15.0"
+        hubspot-developer-platform: "2026.09"
         hubspot-cms-components: "latest"
         content-hub: "Professional+"
         nodejs: "v20"
@@ -38,7 +39,7 @@ Use HubL for content-focused sites with editors comfortable in Design Manager. U
 
 ## Inputs required
 
-- Node.js v20+ (`node --version`)
+- Node.js v22+ (`node --version`) — required by Developer Platform 2025.2 and later
 - HubSpot CLI installed and authenticated — see `hubspot-cms-local-dev`
 - Content Hub Professional or Enterprise subscription
 - HubSpot account ID (needed for the dev server proxy)
@@ -91,11 +92,13 @@ my-project/
 {
   "name": "my-cms-project",
   "srcDir": "src",
-  "platformVersion": "2023.2"
+  "platformVersion": "2026.09"
 }
 ```
 
-`platformVersion` controls which Developer Platform features are available. Use `2023.2` or the latest stable version for new projects.
+`platformVersion` controls which Developer Platform features are available. Use
+`2026.09` (current GA) for new projects. Note that `2023.2` **sunset on 2025-10-01**
+and `2025.1` sunset on 2026-08-01 — projects pinned to either will fail to build.
 
 ### 3. `package.json` — key dependencies
 
@@ -491,7 +494,7 @@ The GraphQL endpoint is at `/_hcms/api/graphql` (available once the required sco
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| `npm start` fails with Node error | Node < v20 | `nvm use 20` or install Node 20 |
+| `npm start` fails with Node error | Node < v22 | `nvm use 22` or install Node 22 |
 | Module not in editor | Missing or wrong `meta.label`, or project not uploaded | Check `meta` export; run `hs project upload` |
 | Island not interactive | Missing `?island` import suffix | Import as `import Foo from './Foo.tsx?island'` |
 | Props not reaching Island | Non-serialisable props passed to `<Island>` | Props must be JSON-serialisable (no functions, class instances) |

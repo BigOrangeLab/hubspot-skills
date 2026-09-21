@@ -1,14 +1,14 @@
 ---
 name: hubspot-cms-templates
 description: "Author HubSpot CMS page, blog, landing page, email, and system templates using HubL — template types, inheritance, partials, blog variables, and multi-language"
-compatibility: "Content Hub Starter and above; CLI v7+"
+compatibility: "Content Hub Starter and above; CLI v8+"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.1"
-    written: "2026-06-09"
+    version: "1.2"
+    written: "2026-09-21"
     written_against:
-        hubspot-cli: "7.10"
+        hubspot-cli: "8.15.0"
         content-hub: "Starter+"
 ---
 
@@ -560,7 +560,7 @@ for a in cfg['accounts']:
         print(a['auth']['tokenInfo']['accessToken'])
         break
 ")
-curl -s "https://api.hubapi.com/cms/v3/source-code/content/YOUR_THEME/templates/pages/YOUR_TEMPLATE.html" \
+curl -s "https://api.hubapi.com/cms/source-code/2026-09/content/YOUR_THEME/templates/pages/YOUR_TEMPLATE.html" \
   -H "Authorization: Bearer $TOKEN" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('id'))"
 ```
 

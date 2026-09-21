@@ -1,15 +1,25 @@
 ---
 name: hubspot-private-apps
-description: "Create and use HubSpot Private Apps — generate non-expiring access tokens scoped to one portal for server-to-server integrations, serverless functions, and internal tooling. Covers scope selection, token management, rate limits, and multi-app split-traffic patterns."
-compatibility: "All Hub tiers; any portal. Private Apps are the required replacement for deprecated API keys."
+description: "In-portal API credentials for HubSpot — service keys (the current mechanism) and legacy private apps (being sunset). Covers creating a service key, scope selection, rotation, token introspection, rate limits, and the split-traffic pattern. Use when a server-to-server integration needs to authenticate against a single portal."
+compatibility: "All Hub tiers. Service keys require Developer Platform Projects 2026.09+ (public beta). Legacy private app creation ends 2026-09-28 (new portals) / 2026-10-26 (existing portals); legacy private apps unsupported September 2027."
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
-    written: "2026-06-09"
+    version: "2.0"
+    written: "2026-09-21"
     written_against:
-        hubspot-api: "v3"
+        hubspot-api: "2026-09"
+        developer-platform: "2026.09"
 ---
+
+> **Legacy private apps are being sunset.** New legacy private apps can no longer
+> be created after **2026-09-28** (portals created on/after that date) or
+> **2026-10-26** (existing portals), and existing ones become unsupported in
+> **September 2027**. **Service keys** are the replacement. Create service keys for
+> all new work; plan a migration for existing private app tokens.
+>
+> Both use the same `Authorization: Bearer <token>` pattern, so the calling code
+> does not change — only how the credential is issued and managed.
 
 ## When to use
 
@@ -36,12 +46,35 @@ Do **not** use private apps when:
 
 ## Procedure
 
-### 1. Create a Private App
+### 1. Create a service key (current mechanism)
+
+Service keys require Developer Platform Projects **2026.09 or later**. They are in
+public beta.
+
+1. In HubSpot, go to **Development → Keys → Service keys**
+2. Click **Create service key** and enter a name
+3. Select the scopes the integration needs (see scope reference below) — search the
+   list or review the full scope reference
+4. Review and confirm
+
+From the key's detail page you can edit scopes, view request logs, rotate, and
+delete. Scopes are editable after creation, which legacy private apps did not
+support cleanly.
+
+**Service keys only work for REST API requests.** They cannot authenticate
+webhooks, UI extensions, or other developer-platform features — those still need
+an app. Rate limits match privately distributed apps.
+
+---
+
+### 1b. Create a legacy private app (existing portals only, until 2026-10-26)
+
+Only do this to maintain an existing integration. New work should use a service key.
 
 1. In HubSpot, go to **Settings → Integrations → Private Apps**
 2. Click **Create a private app**
 3. On the **Basic Info** tab: enter a name and optional description/logo
-4. On the **Scopes** tab: select required scopes (see scope reference below)
+4. On the **Scopes** tab: select required scopes
 5. Click **Create app** → confirm in the dialog
 6. Copy the **Access token** immediately — it is shown once, though you can regenerate it later
 
@@ -139,7 +172,7 @@ Scopes are grouped by product area. Request only what your integration needs.
 | `settings.users.read` | Read portal users |
 | `settings.users.write` | Create / update / delete users |
 | `settings.teams.read` | Read teams |
-| `oauth` | Introspect OAuth tokens (required for `/oauth/v1/access-tokens/`) |
+| `oauth` | Introspect OAuth tokens (required for `/oauth/2026-09/token/introspect`) |
 
 ---
 
@@ -149,12 +182,12 @@ All requests use a Bearer token in the Authorization header:
 
 ```bash
 curl -H "Authorization: Bearer pat-na1-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" \
-  "https://api.hubapi.com/crm/v3/objects/contacts"
+  "https://api.hubapi.com/crm/objects/2026-09/contacts"
 ```
 
 ```javascript
 // Node.js (fetch)
-const res = await fetch('https://api.hubapi.com/crm/v3/objects/contacts', {
+const res = await fetch('https://api.hubapi.com/crm/objects/2026-09/contacts', {
   headers: {
     'Authorization': `Bearer ${process.env.HUBSPOT_ACCESS_TOKEN}`,
     'Content-Type': 'application/json',
@@ -209,8 +242,12 @@ exports.main = async (context, sendResponse) => {
 Verify which scopes are active on a token (requires the token itself and the `oauth` scope, or superadmin):
 
 ```
-GET https://api.hubapi.com/oauth/v1/access-tokens/{token}
+POST https://api.hubapi.com/oauth/2026-09/token/introspect
 ```
+
+The legacy `GET /oauth/v1/access-tokens/{token}` form is on the v1 sunset path.
+Note the method change from `GET` to `POST` — the token moves from the URL into
+the request body, which also keeps it out of access logs.
 
 Response:
 
@@ -233,7 +270,7 @@ Response:
 Also available on the account info endpoint:
 
 ```
-GET https://api.hubapi.com/account-info/v3/details
+GET https://api.hubapi.com/account-info/2026-09/details
 Authorization: Bearer <token>
 ```
 
@@ -317,10 +354,12 @@ In **Settings → Integrations → Private Apps**, click the app → **Delete**.
 ```bash
 # Test auth and get portal info
 curl -s -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  https://api.hubapi.com/account-info/v3/details | jq .
+  https://api.hubapi.com/account-info/2026-09/details | jq .
 
 # Verify scopes on the token
-curl -s "https://api.hubapi.com/oauth/v1/access-tokens/$HUBSPOT_ACCESS_TOKEN" | jq .scopes
+curl -s -X POST "https://api.hubapi.com/oauth/2026-09/token/introspect" \
+  -H "Content-Type: application/json" \
+  -d "{\"token\":\"$HUBSPOT_ACCESS_TOKEN\"}" | jq .scopes
 ```
 
 Expected: 200 response with portal ID and hub domain. The scopes array should list all scopes you configured.
@@ -345,9 +384,11 @@ Expected: 200 response with portal ID and hub domain. The scopes array should li
 
 ## Escalation
 
-- Private Apps docs: https://developers.hubspot.com/docs/api/private-apps
+- Private Apps docs: https://developers.hubspot.com/docs/apps/developer-platform/build-apps/authentication/account-service-keys
 - Scope reference: https://developers.hubspot.com/docs/api/working-with-oauth#scopes
-- Token introspection: `GET https://api.hubapi.com/oauth/v1/access-tokens/{token}`
+- Token introspection: `POST https://api.hubapi.com/oauth/2026-09/token/introspect`
+- Service keys: https://developers.hubspot.com/docs/apps/developer-platform/build-apps/authentication/account-service-keys
+- For the v1–v4 sunset timeline and endpoint mapping: see `hubspot-api-versioning` skill
 - For multi-portal integrations (where private apps won't work): see `hubspot-public-apps-oauth` skill (to be built)
 - For using the token in CMS functions: see `hubspot-cms-serverless` skill
 - For rate-limited CRM operations: see `hubspot-crm-objects` skill

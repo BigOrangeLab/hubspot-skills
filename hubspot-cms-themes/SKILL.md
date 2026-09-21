@@ -1,14 +1,14 @@
 ---
 name: hubspot-cms-themes
 description: "Build, configure, and deploy HubSpot CMS themes — file structure, theme settings fields, drag-and-drop areas, partials, child themes, and CI/CD"
-compatibility: "Content Hub Starter and above; CLI v7+"
+compatibility: "Content Hub Starter and above; CLI v8+"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.1"
-    written: "2026-06-09"
+    version: "1.2"
+    written: "2026-09-21"
     written_against:
-        hubspot-cli: "7.10"
+        hubspot-cli: "8.15.0"
         content-hub: "Starter+"
 ---
 

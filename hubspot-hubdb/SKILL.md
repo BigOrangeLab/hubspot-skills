@@ -1,15 +1,15 @@
 ---
 name: hubspot-hubdb
 description: "Work with HubDB — create and manage tables, query data in HubL templates, build dynamic listing+detail pages, and manage tables via CLI and REST API"
-compatibility: "Content Hub Professional and above; CLI v7+"
+compatibility: "Content Hub Professional and above; CLI v8+; HubDB API 2026-09"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.1"
-    written: "2026-06-09"
+    version: "1.2"
+    written: "2026-09-21"
     written_against:
-        hubspot-cli: "7.10"
-        hubspot-api: "v3"
+        hubspot-cli: "8.15.0"
+        hubspot-api: "2026-09"
         content-hub: "Professional+"
 ---
 
@@ -272,7 +272,7 @@ This template uses special dynamic page variables populated by HubSpot from the 
 **Step 5: Publish the table**
 All row changes go to draft first. Content is not live until you publish:
 - UI: click **Publish** in the HubDB table editor
-- API: `POST /cms/v3/hubdb/tables/{tableIdOrName}/draft/publish`
+- API: `POST /cms/hubdb/2026-09/tables/{tableIdOrName}/draft/publish`
 
 ### 5. HubDB REST API
 
@@ -280,23 +280,23 @@ Use the API for ETL pipelines, bulk imports, or external integrations.
 
 ```bash
 # Get all tables
-GET /cms/v3/hubdb/tables
+GET /cms/hubdb/2026-09/tables
 Authorization: Bearer <access_token>
 
 # Get rows from a table
-GET /cms/v3/hubdb/tables/team_members/rows?orderBy=order&limit=50
+GET /cms/hubdb/2026-09/tables/team_members/rows?orderBy=order&limit=50
 
 # Create a row
-POST /cms/v3/hubdb/tables/team_members/rows
+POST /cms/hubdb/2026-09/tables/team_members/rows
 Content-Type: application/json
 { "values": { "name": "Bob Smith", "role": "Designer", "order": 4 } }
 
 # Update a row (goes to draft)
-PATCH /cms/v3/hubdb/tables/team_members/rows/{rowId}/draft
+PATCH /cms/hubdb/2026-09/tables/team_members/rows/{rowId}/draft
 { "values": { "role": "Senior Designer" } }
 
 # Publish draft changes
-POST /cms/v3/hubdb/tables/team_members/draft/publish
+POST /cms/hubdb/2026-09/tables/team_members/draft/publish
 ```
 
 All write operations target the **draft** version. Always publish after writes to make changes live.
@@ -346,7 +346,7 @@ When the template goes live, set `testing = false`.
 - `hubdb_table_rows("table_name")` returns expected data in a template preview page
 - Dynamic pages: navigating to `/team/alice-johnson` renders the detail template with Alice's row data
 - `row.hs_path` in listing links correctly to each member's detail page URL
-- API: `GET /cms/v3/hubdb/tables/team_members/rows` returns rows as JSON
+- API: `GET /cms/hubdb/2026-09/tables/team_members/rows` returns rows as JSON
 - Unpublished row changes are not visible on live pages until published
 
 ## Failure modes

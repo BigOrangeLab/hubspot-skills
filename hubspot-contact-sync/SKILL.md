@@ -1,15 +1,26 @@
 ---
 name: hubspot-contact-sync
-description: "Sync contacts between HubSpot and an external system via the HubSpot Contacts API v3. Use when importing, exporting, upserting, or deduplicating contacts programmatically."
-compatibility: "HubSpot CRM (all tiers). Requires a Private App token with crm.objects.contacts.read and crm.objects.contacts.write scopes."
+description: "DEPRECATED — superseded by hubspot-crm-objects, hubspot-data-sync, and hubspot-imports-exports. Kept only for links from older material."
+compatibility: "Deprecated 2026-09-21. Content is contacts-only and predates date-based API versioning."
 license: MIT
 metadata:
     author: georgestephanis
     version: "1.0"
-    written: "2026-06-09"
+    written: "2026-09-21"
+    deprecated: true
     written_against:
         hubspot-api: "v3"
 ---
+
+> **Deprecated.** This skill covers a narrow slice of what three other skills now
+> do better:
+>
+> - CRUD, batch, search and upsert on any object — `hubspot-crm-objects`
+> - Bidirectional sync, conflict resolution, incremental strategy — `hubspot-data-sync`
+> - Bulk file-based import/export — `hubspot-imports-exports`
+>
+> Nothing here is contacts-specific enough to justify a separate skill. Use those
+> instead; this file will be removed in a later pass.
 
 # HubSpot Contact Sync
 
@@ -41,7 +52,7 @@ All requests use Bearer auth:
 
 ```bash
 curl -H "Authorization: Bearer $HUBSPOT_TOKEN" \
-     https://api.hubapi.com/crm/v3/objects/contacts?limit=1
+     https://api.hubapi.com/crm/objects/2026-09/contacts?limit=1
 ```
 
 Confirm you get a `200` with a `results` array before proceeding.
@@ -52,7 +63,7 @@ List available contact properties to confirm your target field names exist:
 
 ```bash
 curl -H "Authorization: Bearer $HUBSPOT_TOKEN" \
-     https://api.hubapi.com/crm/v3/properties/contacts \
+     https://api.hubapi.com/crm/properties/2026-09/contacts \
   | jq '.results[] | {name, label, type}'
 ```
 
@@ -77,7 +88,7 @@ curl -X POST \
       }
     ]
   }' \
-  https://api.hubapi.com/crm/v3/objects/contacts/batch/upsert
+  https://api.hubapi.com/crm/objects/2026-09/contacts/batch/upsert
 ```
 
 - `idProperty` defaults to `hs_object_id`; pass `"idProperty": "email"` to dedup by email.
@@ -90,7 +101,7 @@ To pull all contacts (paginated):
 
 ```bash
 curl -H "Authorization: Bearer $HUBSPOT_TOKEN" \
-     "https://api.hubapi.com/crm/v3/objects/contacts?limit=100&properties=email,firstname,lastname&after=$CURSOR"
+     "https://api.hubapi.com/crm/objects/2026-09/contacts?limit=100&properties=email,firstname,lastname&after=$CURSOR"
 ```
 
 Store the `paging.next.after` cursor and loop until `paging` is absent.
@@ -101,7 +112,7 @@ After import, compare the expected row count against HubSpot's total:
 
 ```bash
 curl -H "Authorization: Bearer $HUBSPOT_TOKEN" \
-     "https://api.hubapi.com/crm/v3/objects/contacts?limit=1" \
+     "https://api.hubapi.com/crm/objects/2026-09/contacts?limit=1" \
   | jq '.total'
 ```
 

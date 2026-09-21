@@ -1,15 +1,15 @@
 ---
 name: hubspot-ui-extensions
 description: "Build React-based CRM cards and full-page UI extensions that appear inside HubSpot record sidebars, index pages, and home pages. Covers project structure, card configuration, the hubspot.extend() entry point, SDK hooks, the HubSpot component library, serverless function calls, and the hs project dev/upload/deploy workflow."
-compatibility: "Sales Hub Enterprise, Service Hub Enterprise, or CRM Suite Enterprise required for production use. Developer Platform v2025.2. Legacy CRM Extensions API deprecated Oct 31, 2026."
+compatibility: "Sales Hub Enterprise, Service Hub Enterprise, or CRM Suite Enterprise required for production use. Developer Platform 2026.09. Legacy CRM Extensions API deprecated Oct 31, 2026; legacy public apps unsupported September 2027."
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
-    written: "2026-06-09"
+    version: "1.1"
+    written: "2026-09-21"
     written_against:
-        hubspot-developer-platform: "2025.2"
-        hubspot-cli: "8.x"
+        hubspot-developer-platform: "2026.09"
+        hubspot-cli: "8.15.0"
 ---
 
 ## When to use
@@ -29,8 +29,8 @@ Do **not** use if you need to embed arbitrary HTML/CSS — the UI Extension SDK 
 - HubSpot account with Sales Hub Enterprise, Service Hub Enterprise, or CRM Suite Enterprise
 - HubSpot CLI v8.x (`npm install -g @hubspot/cli`)
 - CLI authenticated (`hs account auth`) with a developer account or sandbox
-- Node.js v20+
-- A Private App access token if the card needs to call the HubSpot API from a serverless function
+- Node.js v22+ (required by Developer Platform 2025.2+)
+- An account service key if the card needs to call the HubSpot API from a serverless function
 
 ---
 
@@ -42,7 +42,7 @@ Do **not** use if you need to embed arbitrary HTML/CSS — the UI Extension SDK 
 hs project create \
   --name=my-crm-extension \
   --dest=./my-crm-extension \
-  --platform-version=2025.2
+  --platform-version=2026.09
 ```
 
 When prompted for features, select **CRM card** (or run `hs project add` after creation to add one).
@@ -67,7 +67,7 @@ my-crm-extension/
 ```json
 {
   "name": "my-crm-extension",
-  "platformVersion": "2025.2"
+  "platformVersion": "2026.09"
 }
 ```
 
@@ -320,7 +320,7 @@ import {
 
 ### 6. Calling serverless functions
 
-The card calls your serverless function for anything that requires server-side auth (calling external APIs, calling HubSpot API with a private app token, accessing secrets).
+The card calls your serverless function for anything that requires server-side auth (calling external APIs, calling HubSpot API with a service key, accessing secrets).
 
 **Card side:**
 
@@ -343,7 +343,7 @@ exports.main = async (context, sendResponse) => {
 
   // Call HubSpot API
   const contact = await fetch(
-    `https://api.hubapi.com/crm/v3/objects/contacts/${objectId}?properties=email,firstname`,
+    `https://api.hubapi.com/crm/objects/2026-09/contacts/${objectId}?properties=email,firstname`,
     { headers: { Authorization: `Bearer ${token}` } }
   ).then(r => r.json());
 
@@ -443,6 +443,35 @@ Users also need the CRM object access permissions in HubSpot (set by admins unde
 
 ---
 
+### 10. User-level access (2026.09, GA)
+
+Developer Platform **2026.09** adds user-level app access: the app acts on behalf
+of the specific logged-in user and enforces *that user's* HubSpot permissions,
+rather than holding broad account-wide access.
+
+Prefer this whenever an extension surfaces data the viewing user may not be
+entitled to. It removes the class of bug where a card renders records the user
+could not otherwise open.
+
+Requires `"platformVersion": "2026.09"` in `hsproject.json`.
+
+---
+
+### 11. App Actions (public beta)
+
+App Actions are a UI extension type that exposes a custom operation on selected
+CRM records, surfaced through a modal or panel rather than an embedded card.
+
+Reach for an App Action instead of a card when the extension is a *verb* the user
+invokes against one or more records ("send to ERP", "recalculate quote") rather
+than a *view* that renders alongside the record. A card that is mostly a button
+is usually an App Action.
+
+Public beta as of 2026-09 — confirm availability in the target portal before
+building a production workflow on it.
+
+---
+
 ## Verification
 
 1. `hs project upload` completes without errors
@@ -469,7 +498,7 @@ hs project logs                  # Serverless function console.log output
 | Serverless function returns no data | Secret not added or wrong secret name | Run `hs secrets list`; check `serverless.json` secrets array matches |
 | `hubspot.extend is not a function` | Wrong import or wrong package version | `import { hubspot } from '@hubspot/ui-extensions'` (not default import) |
 | Custom HTML/CSS not rendering | Not supported — SDK only | Replace with `@hubspot/ui-extensions` components |
-| `p_*` wildcard not matching custom objects | Platform version below 2025.2 | Update `hsproject.json` platformVersion to `2025.2` |
+| `p_*` wildcard not matching custom objects | Platform version below 2025.2 | Update `hsproject.json` platformVersion to `2026.09` |
 | Build fails with "feature schema" error | hsmeta.json has invalid fields | Call `get-feature-schema` MCP tool to get valid schema; fix hsmeta |
 | Card appears but properties not loading | Properties not listed in `readCrmProperties` | Add the property names to `permissions.readCrmProperties` |
 | Legacy card stopped working | CRM Extensions API deprecated Oct 31, 2026 | Migrate to UI Extensions using `hs project create` + card feature |
@@ -478,9 +507,9 @@ hs project logs                  # Serverless function console.log output
 
 ## Escalation
 
-- UI Extensions overview: https://developers.hubspot.com/docs/developer-tooling/ui-extensions
-- Component library: https://developers.hubspot.com/docs/developer-tooling/ui-extensions/ui-extensions-sdk-reference
-- Migration from legacy: https://developers.hubspot.com/docs/developer-tooling/ui-extensions/migrate-from-legacy-crm-cards
+- UI Extensions overview: https://developers.hubspot.com/docs/apps/developer-platform/add-features/ui-extensions/overview
+- Component library: https://developers.hubspot.com/docs/apps/developer-platform/add-features/ui-extensions/ui-extensions-sdk
+- Migration from legacy: https://developers.hubspot.com/docs/apps/developer-platform/add-features/ui-extensions/overview
 - For project build/deploy CLI commands: see `hubspot-cli` skill
 - For serverless function secrets: see `hubspot-cms-serverless` skill
 - For CRM property reading/writing (via API in serverless): see `hubspot-crm-objects` skill

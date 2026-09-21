@@ -1,14 +1,14 @@
 ---
 name: hubspot-cms-membership
 description: "Build password-protected member areas on HubSpot CMS — access groups, all four system templates, CRM contact personalisation, and conditional content gating"
-compatibility: "Content Hub Enterprise only"
+compatibility: "Content Hub Enterprise only; CLI v8+"
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.1"
-    written: "2026-06-09"
+    version: "1.2"
+    written: "2026-09-21"
     written_against:
-        hubspot-cli: "7.10"
+        hubspot-cli: "8.15.0"
         content-hub: "Enterprise"
 ---
 
@@ -367,4 +367,4 @@ Customise at **Settings → Email → System emails → Membership**. Use standa
 - For complex access tier logic (e.g. "show different content to Gold vs. Silver members"), use `contact.member_tier` (a custom property) with `{% if %}` branching in templates/modules.
 - For React CMS projects with membership, the `contact` variable is available in HubL templates but not directly in React components — pass it via a module field or read it from a serverless function.
 - See also: `hubspot-cms-templates` (template type reference), `hubl` (CRM variable syntax), `hubspot-cms-membership` system email templates.
-- Reference: [cms-theme-boilerplate membership templates](https://github.com/HubSpot/cms-theme-boilerplate/tree/main/src/templates/system), [Membership docs](https://developers.hubspot.com/docs/cms/features/membership)
+- Reference: [cms-theme-boilerplate membership templates](https://github.com/HubSpot/cms-theme-boilerplate/tree/main/src/templates/system), [Membership docs](https://developers.hubspot.com/docs/guides/cms/overview)

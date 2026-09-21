@@ -1,14 +1,14 @@
 ---
 name: hubspot-properties-api
 description: "Manage HubSpot CRM properties via the Properties API — all property types, field types, property groups, internal vs. label names, unique identifiers, decimal support, and CRUD patterns for standard and custom object properties"
-compatibility: "All Hub tiers; CRM Properties v3 API"
+compatibility: "All Hub tiers; CRM Properties API 2026-09. Property validation rules are enforced on all write paths from 2026-09."
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
-    written: "2026-06-09"
+    version: "1.1"
+    written: "2026-09-21"
     written_against:
-        hubspot-api: "crm/v3/properties"
+        hubspot-api: "2026-09"
 ---
 
 ## When to use
@@ -26,7 +26,7 @@ Do NOT use this skill for bulk data operations — that is covered in `hubspot-c
 
 ## Inputs required
 
-- Private App token with `crm.schemas.{objectType}.read` and `crm.schemas.{objectType}.write` scopes
+- Account service key with `crm.schemas.{objectType}.read` and `crm.schemas.{objectType}.write` scopes
 - `objectType` string: `contacts`, `companies`, `deals`, `tickets`, `leads`, `products`, `line_items`, `quotes`, `calls`, `emails`, `meetings`, `notes`, `tasks`, or numeric `objectTypeId` for custom objects (e.g., `2-12345678`)
 
 ---
@@ -50,7 +50,7 @@ Do NOT use this skill for bulk data operations — that is covered in `hubspot-c
 ### 2. Create a property
 
 ```
-POST /crm/v3/properties/{objectType}
+POST /crm/properties/2026-09/{objectType}
 ```
 
 #### String / text property
@@ -144,7 +144,7 @@ To look up all properties for an object type:
 ```bash
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/crm/v3/properties/contacts" \
+  "https://api.hubapi.com/crm/properties/2026-09/contacts" \
   | jq '[.results[] | {name: .name, label: .label, type: .type, fieldType: .fieldType}]'
 ```
 
@@ -216,7 +216,7 @@ Property groups organize related properties in the CRM UI and in API responses.
 #### Create a property group
 
 ```
-POST /crm/v3/properties/{objectType}/groups
+POST /crm/properties/2026-09/{objectType}/groups
 ```
 
 ```json
@@ -230,7 +230,7 @@ POST /crm/v3/properties/{objectType}/groups
 #### List all property groups
 
 ```
-GET /crm/v3/properties/{objectType}/groups
+GET /crm/properties/2026-09/{objectType}/groups
 ```
 
 #### Common built-in group names
@@ -249,7 +249,7 @@ When creating a property, always specify `groupName`. If you omit it, HubSpot ma
 ### 7. Update a property
 
 ```
-PATCH /crm/v3/properties/{objectType}/{propertyName}
+PATCH /crm/properties/2026-09/{objectType}/{propertyName}
 ```
 
 You can update: `label`, `description`, `options` (for enumerations), `displayOrder`, `hidden`, `formField`.
@@ -277,7 +277,7 @@ To hide an enum option from the UI without deleting it:
 ### 8. Archive a property
 
 ```
-DELETE /crm/v3/properties/{objectType}/{propertyName}
+DELETE /crm/properties/2026-09/{objectType}/{propertyName}
 ```
 
 Returns `204 No Content`. Archived properties are hidden from the UI but their data is preserved on existing records. The property name cannot be reused.
@@ -289,7 +289,7 @@ Returns `204 No Content`. Archived properties are hidden from the UI but their d
 ```bash
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/crm/v3/properties/contacts/lifecyclestage" \
+  "https://api.hubapi.com/crm/properties/2026-09/contacts/lifecyclestage" \
   | jq '{name: .name, label: .label, type: .type, options: [.options[]?.value]}'
 ```
 
@@ -301,7 +301,7 @@ curl -s \
 # List all custom properties on contacts
 curl -s \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/crm/v3/properties/contacts?dataSensitivity=non_sensitive" \
+  "https://api.hubapi.com/crm/properties/2026-09/contacts?dataSensitivity=non_sensitive" \
   | jq '[.results[] | select(.hubspotDefined == false) | {name: .name, label: .label, type: .type}]'
 
 # Create a test property
@@ -309,13 +309,13 @@ curl -s -X POST \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name":"test_skill_prop","label":"Test Skill Prop","type":"string","fieldType":"text","groupName":"contactinformation"}' \
-  "https://api.hubapi.com/crm/v3/properties/contacts" \
+  "https://api.hubapi.com/crm/properties/2026-09/contacts" \
   | jq '{name: .name, label: .label}'
 
 # Archive it
 curl -s -X DELETE \
   -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-  "https://api.hubapi.com/crm/v3/properties/contacts/test_skill_prop"
+  "https://api.hubapi.com/crm/properties/2026-09/contacts/test_skill_prop"
 echo "Archived (expect no output)"
 ```
 
@@ -327,7 +327,7 @@ echo "Archived (expect no output)"
 |---|---|---|
 | `400 INVALID_NAME` | Property name contains uppercase, spaces, or starts with a number | Use lowercase snake_case; start with a letter |
 | `400 DUPLICATE_VALUE` on unique property | Another record already has that value | Fetch the existing record using `?idProperty=name` before writing |
-| `403 FORBIDDEN` on create | Token missing `crm.schemas.{type}.write` scope | Add the write schema scope to your private app |
+| `403 FORBIDDEN` on create | Token missing `crm.schemas.{type}.write` scope | Add the write schema scope to your service key |
 | `404 NOT_FOUND` on PATCH | Property name typo or wrong objectType | List properties to confirm name and type |
 | `409 CONFLICT` — property name taken | Name is used by an archived property | Use a different name (archived names cannot be reused) |
 | Enum option not appearing in UI | `hidden: true` on the option | PATCH the property with `"hidden": false` for that option |
@@ -340,8 +340,8 @@ echo "Archived (expect no output)"
 
 ## Escalation
 
-- Properties API reference: https://developers.hubspot.com/docs/api/crm/properties
-- Property groups: https://developers.hubspot.com/docs/api/crm/property-groups
+- Properties API reference: https://developers.hubspot.com/docs/guides/api/crm/properties
+- Property groups: https://developers.hubspot.com/docs/guides/api/crm/properties#property-groups
 - For creating custom object schemas: see `hubspot-custom-objects` skill
 - For reading/writing property values on records: see `hubspot-crm-objects` skill
 - For importing data using property names: see `hubspot-imports-exports` skill
