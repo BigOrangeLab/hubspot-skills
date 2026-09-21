@@ -18,7 +18,10 @@ jobs:
 
             - uses: actions/setup-node@v4
               with:
-                  node-version: "20"
+                  node-version: "22"
+
+            - name: Self-check version comparison rules
+              run: node .github/scripts/check-skill-versions.mjs --self-check
 
             - name: Fetch current upstream versions
               env:
@@ -33,35 +36,17 @@ jobs:
                       const rows = JSON.parse(readFileSync('version-report.json', 'utf8'));
                       const date = new Date().toISOString().split('T')[0];
 
-                      // hubspot-cms-vscode uses semver (MAJOR.MINOR.PATCH).
-                      // Flag when the MINOR version advances — extension minor releases
-                      // frequently add new HubL functions/tags pulled from the HubSpot API.
-                      // All other tools: flag on MAJOR version change only.
-                      const MINOR_VERSIONED = new Set(['hubspot-cms-vscode']);
-
-                      function isStale(tool, writtenVer, currentVer) {
-                        if (MINOR_VERSIONED.has(tool)) {
-                          const [wMaj, wMin] = String(writtenVer).split('.').map(Number);
-                          const [cMaj, cMin] = String(currentVer).split('.').map(Number);
-                          return cMaj > wMaj || (cMaj === wMaj && cMin > wMin);
-                        }
-                        return currentVer.split('.')[0] !== String(writtenVer).replace(/[^0-9].*/, '');
-                      }
-
-                      // Build comparison table
+                      // Staleness is decided by check-skill-versions.mjs so the
+                      // version rules live in one testable place.
                       let table = '| Skill | Written | Tool | Written against | Current upstream |\n';
                       table    += '|---|---|---|---|---|\n';
                       for (const r of rows) {
-                        const skip = r.current === 'no source' || r.current.startsWith('error:');
-                        const flag = !skip && isStale(r.tool, r.writtenVersion, r.current) ? ' ⚠️' : '';
-                        table += `| \`${r.skill}\` | ${r.writtenDate ?? '—'} | \`${r.tool}\` | \`${r.writtenVersion}\` | \`${r.current}\`${flag} |\n`;
+                        const flag = r.stale ? ' ⚠️' : '';
+                        const note = r.note ? `<br>_${r.note}_` : '';
+                        table += `| \`${r.skill}\` | ${r.writtenDate ?? '—'} | \`${r.tool}\` | \`${r.writtenVersion}\` | \`${r.current}\`${flag}${note} |\n`;
                       }
 
-                      const staleCount = rows.filter(r =>
-                        r.current !== 'no source' &&
-                        !r.current.startsWith('error:') &&
-                        isStale(r.tool, r.writtenVersion, r.current)
-                      ).length;
+                      const staleCount = rows.filter(r => r.stale).length;
 
                       const summary = staleCount > 0
                         ? `⚠️ **${staleCount} tool(s) have drifted** beyond the version the skill was written against.`
@@ -75,10 +60,12 @@ jobs:
                         'A ⚠️ flag means the upstream version has advanced beyond `written_against`. Review the skill and update its `written_against` and `written` fields after refreshing.',
                         '',
                         '**Staleness rules:**',
+                        '- `hubspot-api` — current GA date version derived from the [public OpenAPI spec collection](https://github.com/HubSpot/HubSpot-public-api-spec-collection); flags when a newer GA date ships',
+                        '- `spec-ga: <family>` — watches a family the skill documents as having *no* GA date version; flags the moment one appears',
                         '- `hubspot-cms-vscode` — flag on minor version bump (extension minor releases add new HubL functions/tags)',
                         '- All other tools — flag on major version bump',
                         '',
-                        'Rows showing `no source` (e.g. `hubspot-api`) have no public release feed and must be checked manually.',
+                        'Rows showing `no source` have no public release feed and must be checked manually. Deprecated skills are excluded.',
                         '',
                         table,
                         '',
