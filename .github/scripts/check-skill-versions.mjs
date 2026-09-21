@@ -19,9 +19,18 @@ const versionCache = new Map();
 const VERSION_SOURCES = {
   // HubSpot CMS VSCode extension — primary source of HubL language data
   "hubspot-cms-vscode": () => githubLatest("HubSpot/hubspot-cms-vscode"),
-  // HubSpot REST API uses a stable "v3" version string — no public release feed
+  // HubSpot CLI — the tool that drifts fastest and is tracked by the most skills
+  "hubspot-cli": () => npmLatest("@hubspot/cli"),
+  // HubSpot REST API is date-based (e.g. 2026-09) with no public release feed
   // "hubspot-api": no source
 };
+
+async function npmLatest(pkg) {
+  const res = await fetch(`https://registry.npmjs.org/${pkg}/latest`);
+  if (!res.ok) throw new Error(`npm registry ${res.status} for ${pkg}`);
+  const { version } = await res.json();
+  return version ?? null;
+}
 
 async function githubLatest(repo) {
   const res = await fetch(
@@ -106,6 +115,10 @@ for (const skillName of skillDirs.sort()) {
   }
 
   const frontmatter = parseFrontmatter(content);
+
+  // Deprecated skills are intentionally frozen — flagging their drift is noise.
+  if (/(?:^|\n)\s*description:\s*"?DEPRECATED\b/.test(frontmatter ?? "")) continue;
+
   const writtenAgainst = parseWrittenAgainst(frontmatter);
   if (!Object.keys(writtenAgainst).length) continue;
 

@@ -9,7 +9,7 @@ metadata:
     written: "2026-09-21"
     written_against:
         hubspot-api: "2026-09"
-        developer-platform: "2026.09"
+        hubspot-developer-platform: "2026.09"
 ---
 
 > **Legacy private apps are being sunset.** New legacy private apps can no longer

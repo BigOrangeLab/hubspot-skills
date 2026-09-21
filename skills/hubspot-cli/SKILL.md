@@ -8,7 +8,7 @@ metadata:
   version: "1.1"
   written: "2026-09-21"
   written_against:
-    hubspot-cli: "8.15.0 (npm @hubspot/cli)"
+    hubspot-cli: "8.15.0"
 ---
 
 ## When to use
