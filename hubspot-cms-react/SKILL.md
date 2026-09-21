@@ -40,7 +40,7 @@ Use HubL for content-focused sites with editors comfortable in Design Manager. U
 ## Inputs required
 
 - Node.js v22+ (`node --version`) — required by Developer Platform 2025.2 and later
-- HubSpot CLI installed and authenticated — see `hubspot-cms-local-dev`
+- HubSpot CLI installed and authenticated — see `hubspot-cli`
 - Content Hub Professional or Enterprise subscription
 - HubSpot account ID (needed for the dev server proxy)
 
@@ -392,7 +392,7 @@ jobs:
           personal_access_key: ${{ secrets.HUBSPOT_PERSONAL_ACCESS_KEY }}
 ```
 
-Note: for theme-only projects (no `app.json`), use the `hubspot-cms-deploy-action` with `src_dir`/`dest_dir` instead (see `hubspot-cms-local-dev`).
+Note: for theme-only projects (no `app.json`), use the `hubspot-cms-deploy-action` with `src_dir`/`dest_dir` instead (see `hubspot-cms-themes`).
 
 ### 11. `cms-assets` pattern — adding React modules to an existing HubL theme
 

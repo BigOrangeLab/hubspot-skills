@@ -25,7 +25,7 @@ Use this skill when:
 ## Inputs required
 
 - HubSpot account with Content Hub Enterprise
-- HubSpot CLI installed and authenticated — see `hubspot-cms-local-dev`
+- HubSpot CLI installed and authenticated — see `hubspot-cli`
 - A theme with a base layout — see `hubspot-cms-themes`
 - A HubSpot contact list for each access tier (used to define who can view gated content)
 - Decision: **invite-only** (admin adds contacts to list manually) vs. **self-registration** (contacts create their own accounts)
