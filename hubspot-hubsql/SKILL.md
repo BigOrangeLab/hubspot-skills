@@ -5,7 +5,7 @@ compatibility: "Private beta only, announced 2026-09-08. Invite/request-access b
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.0"
+    version: "1.1"
     written: "2026-09-28"
     written_against:
         hubspot-api: "2026-09"
@@ -29,6 +29,8 @@ metadata:
   `hubspot-data-sync` or `hubspot-imports-exports`
 - The user wants help requesting access to the beta or tracking when it becomes
   generally available
+- The user wants CRM SQL querying *today* without waiting on this beta — see the
+  "Already available today" note below before telling them to wait
 
 Do **not** use this skill to:
 - Build a production integration today — HubSQL has no stable public API yet;
@@ -77,6 +79,25 @@ HubSpot has not published (as of 2026-09-28):
 Do not present any of the above as confirmed — if the user needs one of these
 answers, say it isn't public yet rather than guessing or extrapolating from how
 other SQL-over-API products typically work.
+
+### Already available today: SQL-style queries via Agent CLI
+
+Separately from this beta, HubSpot's public-beta **Agent CLI** already accepts a
+SQL-style query string in its `reports create` command, ungated by the HubSQL
+private beta:
+
+```bash
+hubspot reports create "SELECT dealstage, COUNT(*) FROM DEAL GROUP BY dealstage" \
+  --name "Deals by stage" --chart-type bar
+```
+
+This is narrower than what HubSQL is being pitched as (it's scoped to building
+a saved report, has no published formal grammar, and the only object confirmed
+in HubSpot's own examples is `DEAL`) — but if a user's actual need is "run one
+aggregate SQL-ish query against CRM data right now," point them at
+`hubspot-agent-cli` instead of telling them to wait for the HubSQL beta. Don't
+conflate the two: this CLI feature is not confirmed to be HubSQL under the
+hood, just a similarly-shaped, more limited capability that shipped first.
 
 ---
 
@@ -156,7 +177,7 @@ endpoint. "Verification" here means confirming the *information* is current:
 
 - HubSpot developer changelog: https://developers.hubspot.com/changelog
 - HubSpot Community (announcements / APIs & Integrations boards): https://community.hubspot.com/
-- If the user needs relational querying today, not eventually: see `hubspot-crm-objects`, `hubspot-data-sync`, `hubspot-imports-exports`
+- If the user needs relational querying today, not eventually: see `hubspot-crm-objects`, `hubspot-data-sync`, `hubspot-imports-exports`, or the `reports create` SQL-style query in `hubspot-agent-cli`
 - For the unrelated, GA, hosted-table feature with a similar name: see `hubspot-hubdb`
 - If you (the assistant) find HubSpot has published real HubSQL docs, this
   skill should be rewritten from those docs rather than patched incrementally —
