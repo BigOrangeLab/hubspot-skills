@@ -61,6 +61,7 @@ Start here — these skills cover auth, the CLI, and API fundamentals that all o
 | [hubspot-private-apps](skills/hubspot-private-apps/)     | Account service keys (current) and legacy private apps (sunsetting) — scoped tokens, rotation, introspection, rate limits, split-traffic pattern                              | HubSpot API 2026-09            |
 | [hubspot-cli](skills/hubspot-cli/)                       | Full hs CLI reference — install, auth, account management, upload/fetch/watch, project build/deploy, HubDB, secrets, sandboxes, and hs mcp setup                              | CLI v8.15.0                    |
 | [hubspot-mcp-server](skills/hubspot-mcp-server/)         | Configure and use HubSpot's Developer MCP (local, CLI-based) and Remote CRM MCP (mcp.hubspot.com) — tools, auth, and client config for Claude Code, Cursor, VS Code, Windsurf | CLI v8.15.0, Remote CRM MCP GA |
+| [hubspot-agent-cli](skills/hubspot-agent-cli/)           | HubSpot's Agent CLI — a separate CLI built for AI agents to operate on CRM objects, pipelines, properties, workflows, and reports, with mandatory dry-run/digest safety. **Public beta** | Agent CLI public beta (2026-06-23) |
 
 ### CRM
 

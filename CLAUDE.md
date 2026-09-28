@@ -46,6 +46,7 @@ Push deep reference material into a `references/` subdirectory; keep `SKILL.md` 
 | [hubspot-public-api](skills/hubspot-public-api/) | Reference for HubSpot's public REST APIs — auth, CRM object pattern, search, batch ops, pagination, rate limits, versioning, and full endpoint catalog |
 | [hubspot-private-apps](skills/hubspot-private-apps/) | Account service keys (current mechanism) and legacy private apps (creation ends Oct 2026) — scope selection, rotation, introspection, rate limits, split-traffic pattern |
 | [hubspot-cli](skills/hubspot-cli/) | Full hs CLI reference — install, auth, account management, CMS upload/watch/fetch, project build/deploy/dev, HubDB, secrets, sandboxes, serverless functions, and hs mcp setup |
+| [hubspot-agent-cli](skills/hubspot-agent-cli/) | HubSpot's Agent CLI — a separate CLI built for AI agents to operate on CRM objects, pipelines, properties, workflows, and reports, with mandatory dry-run/digest safety. **Public beta** |
 | [hubspot-mcp-server](skills/hubspot-mcp-server/) | Configure and use HubSpot's two MCP servers: Developer MCP (local, CLI-based) and Remote CRM MCP (mcp.hubspot.com) — tools, auth, IDE config for Claude Code, Cursor, VS Code, Windsurf |
 
 ### CRM
