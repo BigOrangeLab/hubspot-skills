@@ -84,6 +84,7 @@ Moving data into and out of HubSpot, and reacting to changes in real time.
 | [hubspot-imports-exports](skills/hubspot-imports-exports/) | Bulk import and export CRM data — Imports API file upload, column mapping, async job polling, error handling, and post-import reconciliation          | HubSpot API 2026-09                                            |
 | [hubspot-webhooks](skills/hubspot-webhooks/)               | Configure webhook subscriptions, verify HMAC signatures, deduplicate events, handle retries, hybrid polling pattern                                   | HubSpot API 2026-09                                            |
 | [hubspot-workflows-api](skills/hubspot-workflows-api/)     | Flows v4 API — CRUD, enrollment, custom coded actions, Breeze AI Agent Tools, Custom Behavioral Events                                                | automation/v4 (no GA date version), Developer Platform 2026.09 |
+| [hubspot-hubsql](skills/hubspot-hubsql/)                   | HubSQL — native SQL (joins/filters/aggregations) over CRM data. **Private beta**, invite-only, no public API docs yet                                 | announced 2026-09-08                                            |
 
 ### Marketing
 

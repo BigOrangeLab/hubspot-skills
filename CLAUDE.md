@@ -65,6 +65,7 @@ Push deep reference material into a `references/` subdirectory; keep `SKILL.md` 
 | [hubspot-data-sync](skills/hubspot-data-sync/) | Sync data bidirectionally between HubSpot and external systems — field mapping, conflict resolution, deletion handling, and reliable incremental sync patterns |
 | [hubspot-imports-exports](skills/hubspot-imports-exports/) | Bulk import and export CRM data — Imports API file upload, column mapping, async job polling, error handling, and post-import reconciliation |
 | [hubspot-webhooks](skills/hubspot-webhooks/) | Subscribe to and process HubSpot webhooks — configure subscriptions, verify HMAC signatures, handle retries, deduplicate events, and fill coverage gaps with periodic polling |
+| [hubspot-hubsql](skills/hubspot-hubsql/) | HubSQL — native SQL (joins/filters/aggregations) over CRM data. **Private beta**, invite-only, no public API docs yet |
 | [hubspot-workflows-api](skills/hubspot-workflows-api/) | Manage automation workflows via the Flows v4 API — read/create/enroll, build custom coded actions in Developer Platform projects, Breeze AI Agent Tools, and Custom Behavioral Events |
 
 ### Marketing
