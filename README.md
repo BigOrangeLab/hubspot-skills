@@ -87,6 +87,14 @@ Moving data into and out of HubSpot, and reacting to changes in real time.
 | [hubspot-workflows-api](skills/hubspot-workflows-api/)     | Flows v4 API — CRUD, enrollment, custom coded actions, Breeze AI Agent Tools, Custom Behavioral Events                                                | automation/v4 (no GA date version), Developer Platform 2026.09 |
 | [hubspot-hubsql](skills/hubspot-hubsql/)                   | HubSQL — native SQL (joins/filters/aggregations) over CRM data. **Private beta**, invite-only, no public API docs yet                                 | announced 2026-09-08                                            |
 
+### AI & Billing
+
+HubSpot's native AI features and the HubSpot Credits system that pays for them.
+
+| Skill | Description | Written against |
+| ----- | ----------- | --------------- |
+| [hubspot-ai-credits](skills/hubspot-ai-credits/) | HubSpot AI agents and features, HubSpot Credits allotments and rate sheet, capacity packs vs. pay-as-you-go, auto-upgrade, spend limits, cost estimation script, and which developer surfaces consume credits | Credits Rate Sheet 2026-09-09 |
+
 ### Marketing
 
 Email, forms, landing pages, and campaign management.
