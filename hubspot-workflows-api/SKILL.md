@@ -5,7 +5,7 @@ compatibility: "Marketing Hub Pro/Enterprise, Sales Hub Pro/Enterprise, or Servi
 license: MIT
 metadata:
     author: georgestephanis
-    version: "1.1"
+    version: "1.2"
     written: "2026-09-21"
     written_against:
         hubspot-api: "automation/v4 (flows), automation/actions/2026-09 (custom actions)"
@@ -39,7 +39,7 @@ metadata:
 - Account service key with `automation` scope for Flows API operations
 - For custom coded actions: HubSpot CLI v8.x, Developer Platform project, Operations Hub Pro/Enterprise
 - For enrollment API: `automation` scope + the workflow ID and enrolled object ID
-- For Breeze AI Agent Tools: Developer Platform 2026.09 project
+- For Breeze AI Agent Tools: a Developer Platform project on `platformVersion` 2025.2 or 2026.03 (beta)
 
 ---
 
@@ -384,28 +384,51 @@ After deploy, the action appears in the workflow editor under **Custom** → you
 
 ### 4. Breeze AI Agent Tools
 
-An **Agent Tool** is a custom workflow action that HubSpot's Breeze AI can autonomously call. When defined as an Agent Tool, Breeze can invoke it when processing an AI-powered task.
-
-Add `"isAgentTool": true` to the action's hsmeta `data` block:
+An **agent tool** is a custom workflow action that HubSpot agents (Agent Builder custom agents and other Breeze agents) can call on their own. Under the hood it's a `workflow-action` component with `AGENTS` in its `supportedClients`. **Beta.** Requires `platformVersion` `2025.2` or `2026.03`.
 
 ```json
 {
-  "type": "CUSTOM_ACTION",
-  "uid": "my-agent-tool",
-  "data": {
-    "isAgentTool": true,
-    "actionLabels": {
-      "actionName": "Look Up Customer Risk Score",
-      "actionDescription": "Returns a risk score for the enrolled contact from the risk API. Higher score = more risk."
-    },
-    "functions": [...],
+  "uid": "agent_tool_action",
+  "type": "workflow-action",
+  "config": {
+    "actionUrl": "https://example.com/api/risk-score",
+    "supportedClients": [
+      { "client": "WORKFLOWS" },
+      {
+        "client": "AGENTS",
+        "toolType": "GET_DATA",
+        "llmConfig": {
+          "actionDescription": "Returns a 0-100 risk score for a contact from the risk API. Call when asked about churn or payment risk. Higher = riskier."
+        }
+      }
+    ],
+    "objectTypes": ["CONTACT"],
     "inputFields": [...],
-    "outputFields": [...]
+    "outputFields": [
+      { "typeDefinition": { "name": "riskScore", "type": "string" } }
+    ],
+    "labels": { "en": { "actionName": "Look up customer risk score", "appDisplayName": "Risk API" } }
   }
 }
 ```
 
-The `actionDescription` is surfaced to the AI model — write it clearly and include what the outputs mean. The function implementation is identical to a normal custom coded action.
+- **`toolType`:**
+  - `GET_DATA`: read data.
+  - `GENERATE`: create content or analysis.
+  - `TAKE_ACTION`: write somewhere. This type **requires user approval before running by default**, which can be changed in the agent editor.
+- **`llmConfig.actionDescription`** is seen only by the model. Say when to call the tool, how to format inputs, and what the outputs mean. Leave out branding and UI copy.
+- **Outputs** must be a flat JSON object of string values. If any value isn't a string, *all* outputs are ignored.
+- **Limits:**
+  - `actionUrl` must be a public endpoint. Project serverless functions aren't supported.
+  - The agent sees no CRM data unless a tool fetches it.
+  - The agent can't ask the user for missing inputs mid-run.
+  - Required fields can't be changed after upload.
+  - Never make secrets input fields.
+- **Legacy:** older docs and projects used `"isAgentTool": true` in the action's `data` block. Use `supportedClients` for new work.
+
+**Credits:** the tool itself doesn't consume HubSpot Credits. Your endpoint's own costs are yours. The **agent that calls it** is billed: custom agents use 1 credit per action unit, and a Breeze AI action placed directly in a workflow uses 10 per execution. Plain custom workflow actions cost nothing. For budgeting, spend limits, and the full rate sheet, see `hubspot-ai-credits`.
+
+Reference: https://developers.hubspot.com/docs/apps/developer-platform/add-features/agent-tools/reference
 
 ---
 
@@ -490,7 +513,7 @@ For custom actions:
 | Custom action not visible in workflow editor | Not deployed or deployed to wrong account | Run `hs project deploy`; check `hs account current` |
 | `callback` not called within 60s | Function timeout | Optimize external API calls; add timeout handling |
 | Output fields not available downstream | Wrong field name in `outputFields` config vs. `callback` | Names must match exactly between hsmeta `outputFields[].typeDefinition.name` and `callback({outputFields:{...}})` |
-| Breeze not using the Agent Tool | `isAgentTool` missing or description unclear | Set `"isAgentTool": true`; write a clear `actionDescription` |
+| Breeze not using the Agent Tool | `AGENTS` missing from `supportedClients`, or `llmConfig.actionDescription` unclear | Add `{ "client": "AGENTS", "toolType": ..., "llmConfig": {...} }` to `supportedClients`; write a clear `actionDescription` |
 | Custom Behavioral Event not triggering workflow | Wrong `eventName` format or portal mismatch | Use the full `pe{portalId}_name` format returned by the definition API |
 | Workflow runs but custom action errors | Secret missing or external API down | Check `hs project logs`; verify `hs secrets list` |
 
@@ -505,3 +528,4 @@ For custom actions:
 - For project build/deploy: see `hubspot-cli` skill
 - For secrets management: see `hubspot-cms-serverless` skill
 - For CRM data access inside actions: see `hubspot-crm-objects` skill + `hubspot-private-apps` skill
+- For what agent tools and AI actions cost in HubSpot Credits: see `hubspot-ai-credits` skill
