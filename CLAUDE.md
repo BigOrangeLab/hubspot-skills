@@ -69,6 +69,12 @@ Push deep reference material into a `references/` subdirectory; keep `SKILL.md` 
 | [hubspot-hubsql](skills/hubspot-hubsql/) | HubSQL — native SQL (joins/filters/aggregations) over CRM data. **Private beta**, invite-only, no public API docs yet |
 | [hubspot-workflows-api](skills/hubspot-workflows-api/) | Manage automation workflows via the Flows v4 API — read/create/enroll, build custom coded actions in Developer Platform projects, Breeze AI Agent Tools, and Custom Behavioral Events |
 
+### AI & Billing
+
+| Skill | Description |
+|---|---|
+| [hubspot-ai-credits](skills/hubspot-ai-credits/) | HubSpot AI features (Breeze Assistant, Customer/Prospecting/Data/Content agents, Agent Builder custom agents, workflow AI actions, smart properties, intent, Data Studio) and HubSpot Credits — allotments, rate sheet, packs vs. overage, auto-upgrade, spend limits, cost estimation, what developer surfaces do/don't consume credits |
+
 ### Marketing
 
 | Skill | Description |
