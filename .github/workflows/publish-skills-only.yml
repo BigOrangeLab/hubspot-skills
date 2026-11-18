@@ -1,0 +1,40 @@
+# Publishes the contents of skills/ as the root of a `skills-only` branch, so
+# another repo can vendor the skills with a plain git subtree and have them land
+# where Claude Code looks for them (.claude/skills/<name>/SKILL.md):
+#
+#   git subtree add  --prefix=.claude/skills <this-repo-url> skills-only --squash
+#   git subtree pull --prefix=.claude/skills <this-repo-url> skills-only --squash
+#
+# The branch is rebuilt from main's history on every push that touches skills/,
+# and is generated: never commit to it by hand.
+name: Publish skills-only branch
+
+on:
+  push:
+    branches: [trunk]
+    paths: ['skills/**', '.github/workflows/publish-skills-only.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-skills-only
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Split skills/ into the skills-only branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # `subtree split` is deterministic: the same history gives the same
+          # commits, so subtrees that pulled earlier fast-forward cleanly.
+          sha="$(git subtree split --prefix=skills)"
+          git push --force origin "$sha:refs/heads/skills-only"
+          echo "skills-only → \`${sha:0:7}\`" >>"$GITHUB_STEP_SUMMARY"
